@@ -35,4 +35,30 @@ private:
   int _vertex;
 };
 
+
+
+/// returns a Selector that is true for charged particles
+fastjet::Selector SelectorIsCharged();
+/// alternative name for charged-particle selector
+fastjet::Selector SelectorCharged() {return SelectorIsCharged();}
+
+/// returns a Selector that is true for particles that come from the
+/// specified vertex
+fastjet::Selector SelectorVertexNumber(int i);
+
+/// returns a Selector that is true for particles from the hard vertex
+fastjet::Selector SelectorIsHard()   {return SelectorVertexNumber(0);}
+fastjet::Selector SelectorHard()   {return SelectorIsHard();}
+
+/// returns a Selector that is true for particles from pileup vertices
+fastjet::Selector SelectorIsPileup() {return !SelectorVertexNumber(0);}
+fastjet::Selector SelectorPileup() {return !SelectorIsPileup();}
+
+/// returns a Selector that is true for particles with a specific PDGId
+fastjet::Selector SelectorPDGId(int i);
+
+/// returns a Selector that is true for particles with a specific absolute PDGId
+fastjet::Selector SelectorAbsPDGId(int i);
+
+
 #endif
