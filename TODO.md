@@ -8,7 +8,5 @@ Big things
 Smaller things
 --------------
 
-- be able to read event files in our framework
 - reading gzipped files
 - neutrino selector
-- 
