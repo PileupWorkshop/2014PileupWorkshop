@@ -14,9 +14,9 @@ INCLUDE += `$(FJCONFIG) --cxxflags`
 LIBRARIES  += `$(FJCONFIG) --libs --plugins`
 INCLUDE += $(LCLINCLUDE)
 
-COMMONSRC = CmdLine.cc EventSource.cc ParticleIDMethods.cc ParticleName.cc Version.cc
+COMMONSRC = CmdLine.cc EventSource.cc ParticleIDMethods.cc ParticleName.cc PU14.cc Version.cc
 F77SRC = 
-COMMONOBJ = CmdLine.o EventSource.o ParticleIDMethods.o ParticleName.o Version.o
+COMMONOBJ = CmdLine.o EventSource.o ParticleIDMethods.o ParticleName.o PU14.o Version.o
 
 PROGSRC = 
 PROGOBJ = 

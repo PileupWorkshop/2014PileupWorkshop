@@ -20,5 +20,6 @@
 *.out
 *.app
 
-# emacs backups
+# emacs and other backups
 *~
+*.bak
