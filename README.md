@@ -12,7 +12,7 @@ Useful reading
 In a while we'll be adding a list of useful papers here.
 
 Software
---------
+========
 
 The current development plan is as follows:
 
@@ -24,4 +24,18 @@ The current development plan is as follows:
 - scripts contains some helper scripts (e.g. for automated Makefile
   generation). 
 
+
+Getting started
+---------------
+
+- in the EventMixer/ directory run
+  
+    ./mkmk
+    make
+
+in the example/ directory run
+
+    ./mkmk
+    make
+    ./test -hard ev.pu14
 
