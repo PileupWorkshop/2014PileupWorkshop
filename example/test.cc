@@ -7,8 +7,7 @@ using namespace fastjet;
 
 int main (int argc, char ** argv) {
   CmdLine cmdline(argc,argv);
-  EventSource events;
-  events.open_stream(cmdline.value<string>("-hard"));
+  EventSource events(cmdline.value<string>("-hard"));
   
   vector<PseudoJet> event;
   event.resize(0);

@@ -14,7 +14,11 @@
 class EventSource {
 public:
   
-  /// set up an event stream from the corresponding file
+  EventSource(const std::string & filename) {
+    open_stream(filename);
+  }
+
+  /// set up an event stream from the corresponding file (in the PU14 format) 
   void open_stream(const std::string & filename);
 
   /// appends the particles from the next event that is read onto the 

@@ -1,5 +1,5 @@
 
-# Makefile generated automatically by ../scripts/mkcxx.pl '-f' '-i' '-I../EventMixer' '-l' '-L../EventMixer -lEventMixer'
+# Makefile generated automatically by ../scripts/mkcxx.pl '-f' '-i' '-I../EventMixer' '-l' '-L../EventMixer -lEventMixer -lz'
 # run 'make make' to update it if you add new files
 
 CXX = g++  # for macs - otherwise get c++ = clang
@@ -22,7 +22,7 @@ PROGSRC = test.cc
 PROGOBJ = test.o
 
 INCLUDE += -I../EventMixer
-LIBRARIES += -L../EventMixer -lEventMixer
+LIBRARIES += -L../EventMixer -lEventMixer -lz
 
 
 all:  test 
@@ -33,7 +33,7 @@ test: test.o  $(COMMONOBJ)
 
 
 make:
-	../scripts/mkcxx.pl '-f' '-i' '-I../EventMixer' '-l' '-L../EventMixer -lEventMixer'
+	../scripts/mkcxx.pl '-f' '-i' '-I../EventMixer' '-l' '-L../EventMixer -lEventMixer -lz'
 
 clean:
 	rm -vf $(COMMONOBJ) $(PROGOBJ)

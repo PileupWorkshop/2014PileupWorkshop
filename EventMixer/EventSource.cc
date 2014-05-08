@@ -1,6 +1,7 @@
 #include "EventSource.hh"
 #include "FastIStringStream.hh"
 #include "PU14.hh"
+#include "zfstream.h"
 #include <cassert>
 #include <fstream>
 
@@ -12,6 +13,10 @@ using namespace fastjet;
 void EventSource::open_stream(const std::string & filename) {
   if (filename == "-") {
     _stream  = & cin;
+  } else if (filename.length() > 3 && 
+             filename.find(std::string(".gz")) +3 == filename.length()) {
+    _stream = new gzifstream(filename.c_str());
+    _stream_auto.reset(_stream);
   } else {
     _stream = new ifstream(filename.c_str());
     _stream_auto.reset(_stream);

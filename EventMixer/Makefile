@@ -1,5 +1,5 @@
 
-# Makefile generated automatically by ../scripts/mkcxx.pl '-a' 'EventMixer' '-f'
+# Makefile generated automatically by ../scripts/mkcxx.pl '-a' 'EventMixer' '-f' '-g' 'c++'
 # run 'make make' to update it if you add new files
 
 CXX = g++  # for macs - otherwise get c++ = clang
@@ -8,15 +8,16 @@ CXXFLAGS = -Wall -g -O2
 # also arrange for fortran support
 FC = gfortran
 FFLAGS = -Wall -O2
+CXX = c++
 
 FJCONFIG = fastjet-config
 INCLUDE += `$(FJCONFIG) --cxxflags`
 LIBRARIES  += `$(FJCONFIG) --libs --plugins`
 INCLUDE += $(LCLINCLUDE)
 
-COMMONSRC = CmdLine.cc EventSource.cc ParticleIDMethods.cc ParticleName.cc PU14.cc Version.cc
+COMMONSRC = CmdLine.cc EventMixer.cc EventSource.cc ParticleIDMethods.cc ParticleName.cc PU14.cc Version.cc zfstream.cc
 F77SRC = 
-COMMONOBJ = CmdLine.o EventSource.o ParticleIDMethods.o ParticleName.o PU14.o Version.o
+COMMONOBJ = CmdLine.o EventMixer.o EventSource.o ParticleIDMethods.o ParticleName.o PU14.o Version.o zfstream.o
 
 PROGSRC = 
 PROGOBJ = 
@@ -34,7 +35,7 @@ libEventMixer.a: $(COMMONOBJ)
 
 
 make:
-	../scripts/mkcxx.pl '-a' 'EventMixer' '-f'
+	../scripts/mkcxx.pl '-a' 'EventMixer' '-f' '-g' 'c++'
 
 clean:
 	rm -vf $(COMMONOBJ) $(PROGOBJ)
@@ -59,9 +60,12 @@ depend:
 # DO NOT DELETE
 
 CmdLine.o: CmdLine.hh
+EventMixer.o: EventMixer.hh CmdLine.hh EventSource.hh
 EventSource.o: EventSource.hh FastIStringStream.hh PU14.hh
-EventSource.o: HepPID/ParticleIDMethods.hh
+EventSource.o: HepPID/ParticleIDMethods.hh zfstream.h
 ParticleIDMethods.o: HepPID/ParticleIDMethods.hh HepPID/ParticleName.hh
 ParticleName.o: HepPID/ParticleName.hh HepPID/ParticleIDMethods.hh
 ParticleName.o: HepPID/Version.hh
+PU14.o: PU14.hh HepPID/ParticleIDMethods.hh
 Version.o: HepPID/Version.hh
+zfstream.o: zfstream.h
