@@ -37,5 +37,7 @@ in the example/ directory run
 
     ./mkmk
     make
-    ./test -hard ev.pu14
+    ./test -hard ../sample-events/dummy.pu14
+
+
 
