@@ -26,7 +26,7 @@ The current development plan is as follows:
 
 - sample-events/ contains small event files for basic testing
 
-- /afs/cern.ch/user/p/puws2014/public/events contains large event
+- [/afs/cern.ch/user/p/puws2014/public/events](file:///afs/cern.ch/user/p/puws2014/public/events) contains large event
   files. Names should be fairly self-explanatory. (We should add http
   access to the files too.)
 
