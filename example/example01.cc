@@ -33,7 +33,7 @@ int main (int argc, char ** argv) {
 
   // create mixer that will construct events by mixing hard and pileup
   // events read from files given from command line using 
-  // -hard hard_events_file(.gz) -pilup pileup_events_file(.gz)
+  // -hard hard_events_file(.gz) -pileup pileup_events_file(.gz)
   EventMixer mixer(&cmdline);  
   
   // loop over events
