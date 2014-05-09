@@ -21,8 +21,14 @@ The current development plan is as follows:
 
 - example/ will contain a handful of examples
 
-- scripts contains some helper scripts (e.g. for automated Makefile
+- scripts/ contains some helper scripts (e.g. for automated Makefile
   generation). 
+
+- sample-events/ contains small event files for basic testing
+
+- /afs/cern.ch/user/p/puws2014/public/events contains large event
+  files. Names should be fairly self-explanatory. (We should add http
+  access to the files too.)
 
 
 Getting started
