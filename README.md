@@ -34,12 +34,12 @@ The current development plan is as follows:
 Getting started
 ---------------
 
-- in the EventMixer/ directory run
+In the EventMixer/ directory run
   
     ./mkmk
     make
 
-in the example/ directory run
+In the example/ directory run
 
     ./mkmk
     make
