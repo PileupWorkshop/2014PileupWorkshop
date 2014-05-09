@@ -28,7 +28,7 @@ The current directory structure is as follows:
 
 - [/afs/cern.ch/user/p/puws2014/public/events](file:///afs/cern.ch/user/p/puws2014/public/events) contains large event
   files, also accessible through the web at
-  [http://puws2014.web.cern.ch/puws2014/events/](http://puws2014.web.cern.ch/puws2014/events/).  File names should be fairly self-explanatory. 
+  [http://cern.ch/puws2014/events/](http://cern.ch/puws2014/events/).  File names should be fairly self-explanatory. 
 
 
 Getting started

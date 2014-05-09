@@ -1,8 +1,13 @@
 Big things
 ----------
 
-- write a mixer
+- add some histogramming
+
+- CHS
+
 - write an example with PU subtraction
+
+
 
 
 Smaller things
