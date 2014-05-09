@@ -1,12 +1,13 @@
-#include "EventMixer.hh"
-#include "CmdLine.hh"
-#include "PU14.hh"
-#include "fastjet/ClusterSequence.hh"
-
-using namespace std;
-using namespace fastjet;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// This example is meant to illustrate the following features:
+//   - Use of the class EventMixer to read in signal and pileup events from
+//     their respective files, and merge them
+//   - Access to particle properties through PseudoJet's user_info method
+//     and the PU14 class
+//   - Use of SelectorIsHard to select, in the mixed event, particles 
+//     originating from the hard event only
+//   - Use of the CmdLine class to pass optsions from the command line
 //
 // Run this example using, for instance,
 //
@@ -18,6 +19,13 @@ using namespace fastjet;
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "EventMixer.hh"
+#include "CmdLine.hh"
+#include "PU14.hh"
+#include "fastjet/ClusterSequence.hh"
+
+using namespace std;
+using namespace fastjet;
 
 int main (int argc, char ** argv) {
   CmdLine cmdline(argc,argv);
