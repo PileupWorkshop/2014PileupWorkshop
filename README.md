@@ -34,6 +34,10 @@ The current directory structure is as follows:
 Getting started
 ---------------
 
+If fastjet-config is not in your path, place a .fastjet file containing the path
+to the top-level fastjet installation directory (i.e. without the /bin/ part) in each of the
+directories where you'll run ./mkmk. Then:
+
 In the EventMixer/ directory run
   
     ./mkmk
