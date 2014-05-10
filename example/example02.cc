@@ -44,10 +44,11 @@ int main (int argc, char ** argv) {
   // some definitions
   JetDefinition jet_def(antikt_algorithm,R);         // the jet definition
   AreaDefinition area_def(active_area);              // the area definition
-  cout << "# "  << jet_def.description() << endl;            
-  cout << "# "  << area_def.description() << endl;           
+  cout << "# jet_def: "  << jet_def.description() << endl;            
+  cout << "# area_def: "  << area_def.description() << endl;           
   // selects two hardest jets in event, and THEN select only those within rapmax-R
   Selector sel_jets = SelectorAbsRapMax(rapmax-R)*SelectorNHardest(2);  
+  cout << "# sel_jets: " << sel_jets.description() << endl;
   AverageAndError npu, offset;
   CorrelationCoefficient subhardcorr;
   
@@ -55,7 +56,7 @@ int main (int argc, char ** argv) {
   GridMedianBackgroundEstimator * gmbge = new GridMedianBackgroundEstimator(rapmax,0.55);
   // define subtractor
   Subtractor sub(gmbge);
-  cout << "# "  << sub.description() << endl;
+  cout << "# subtractor: "  << sub.description() << endl;
   
   // create mixer that will construct events by mixing hard and pileup
   // events read from files given from command line using 
