@@ -5,15 +5,22 @@
 // and output of some quality measures, namely the average offset between subtracted and hard,
 // its dispersion, and the correlation coefficient.
 //
+// Rho rescaling using a pre-determined function of rapidity is also performed, and
+// can be switched off using the command line option "-norescale"
+//
+// A simple matching between subtracted and hard, based on a delta_R distance <= 0.2, is
+// performed before calculation of quality measures.
+//
 // Run this example using, for instance,
 //
 // ./example02 -hard ../sample-events/lhc14-pythia8-4C-dijet50-nev20.pu14.gz \
 //             -pileup ../sample-events/lhc14-pythia8-4C-minbias-nev100.pu14.gz \
 //             -npu 20 -nev 2 
 //
-// Other possible command line options are -R, -rapmax
+// Other possible command line options are -R, -rapmax, -maxdeltaR, -maxprintout
 //
-// TODO: add rapidity rescaling, add matching between jets, add a -out option
+// TODO: - add a -out option? 
+//       - think through jet selection
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,23 +29,66 @@
 #include "PU14.hh"
 #include "AverageAndError.hh"
 #include "CorrelationCoefficient.hh"
+#include "AveragingHist.hh"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/GridMedianBackgroundEstimator.hh"
 #include "fastjet/tools/Subtractor.hh"
-#include "fastjet/tools/Filter.hh"
 #include <iomanip>      // std::setprecision
 
 using namespace std;
 using namespace fastjet;
+
+/// very dumb matching routine, expected to work with at most two jets.
+/// It returns true if it manages to return at least one valid
+/// matching between subtracted and hard, using a deltaR <= 0.2 rule.
+/// If needed, it performs approprate swaps.
+/// If only one matching is found the sub vector is resized to 1.
+/// If no matching is found it returns false.
+///
+bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard) {
+   double maxdeltaR = 0.2;
+   if ( sub.size() == 2  && hard.size() == 2 ) {
+       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+           PseudoJet tmp = hard[0];
+	   hard[0] = hard[1];
+	   hard[1] = tmp;
+	   //cout << "Swapped" << endl;
+       }
+       if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+       return true;
+   } 
+   else if (sub.size() == 1 && hard.size() == 2 ) {
+      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+           PseudoJet tmp = hard[0];
+	   hard[0] = hard[1];
+	   hard[1] = tmp;
+      }
+      return true;
+   }      
+   else if (sub.size() == 2 && hard.size() == 1 ) {
+      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[1].delta_R(hard[0]) <= maxdeltaR ) {
+	   sub[0] = sub[1];
+      }
+      sub.resize(1);
+      return true;
+   }
+   else if (sub.size() == 1 && hard.size() == 1 ) {
+      if ( sub[0].delta_R(hard[0]) <= maxdeltaR ) { return true; }
+   }
+   //cout << "matching false" << endl;
+   return false; 
+}
+////////////////////////////////////////////////////////////////////////////////////
 
 int main (int argc, char ** argv) {
   CmdLine cmdline(argc,argv);
   // inputs read from command line
   int nev = cmdline.value<int>("-nev",1);  // first argument: command line option; second argument: default value
   int maxprintout = cmdline.value<int>("-maxprintout",1);  
-  //bool verbose = cmdline.present("-verbose");
   double R = cmdline.value<double>("-R",0.4);
   double rapmax = cmdline.value<double>("-rapmax",3.);
+  double maxdeltaR = cmdline.value<double>("-maxdeltaR",0.2);
+  bool rescale = ! cmdline.present("-norescale");
   cout << "# " << cmdline.command_line() << "\n#" << endl;
   
   // some definitions
@@ -51,9 +101,15 @@ int main (int argc, char ** argv) {
   cout << "# sel_jets: " << sel_jets.description() << endl;
   AverageAndError npu, offset;
   CorrelationCoefficient subhardcorr;
+  AveragingHist offset_v_rapidity(-rapmax,rapmax,0.25);
   
   // define background estimator (grid type, does not need to recluster)
   GridMedianBackgroundEstimator * gmbge = new GridMedianBackgroundEstimator(rapmax,0.55);
+  // define (and then apply) function for rapidity rescaling of rho.
+  // NB These parameters have actually been determined at 13 TeV, but they vary slowly
+  // and should therefore also be aproproate for 14 TeV
+  FunctionOfPseudoJet<double> * rescaling = new BackgroundRescalingYPolynomial(1.1685397, 0, -0.0246807, 0, 5.94119e-05);
+  if ( rescale) { gmbge -> set_rescaling_class(rescaling); }
   // define subtractor
   Subtractor sub(gmbge);
   cout << "# subtractor: "  << sub.description() << endl;
@@ -110,11 +166,17 @@ int main (int argc, char ** argv) {
      }
      
      // calculate quality measures, offset and dispersion and correlation coefficient,
-     // for the jet transverse momentum
-     for (unsigned int i=0; i < subtracted_jets.size(); i++) {
-           offset.add_entry(subtracted_jets[i].pt() - hard_jets[i].pt());
+     // for the jet transverse momentum.
+     // Also fill an histogram of offset v. rapidity, to appreciate the effect
+     // of rho rescaling
+     if ( match(subtracted_jets, hard_jets) ) {
+        for (unsigned int i=0; i < subtracted_jets.size(); i++) {
+           double deltapt = subtracted_jets[i].pt() - hard_jets[i].pt();
+           offset.add_entry(deltapt);
 	   subhardcorr.add_entry(subtracted_jets[i].pt(),hard_jets[i].pt());
-     }
+           offset_v_rapidity.add_entry(hard_jets[i].rap(),deltapt);
+        }
+     }	
      
   }  // end loop over events
 
@@ -124,4 +186,9 @@ int main (int argc, char ** argv) {
                           << offset.average() << "    " 
 			  << offset.sd()      << "    " 
 			  << subhardcorr.r() << endl;
+
+  // output histograms
+  cout << "\n\n# offset_v_rapidity" << endl;
+  cout << "# binlo binmid binhi avg std err avgsquares" << endl;
+  output_noNaN(offset_v_rapidity);
 }
