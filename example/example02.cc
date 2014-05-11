@@ -40,13 +40,12 @@ using namespace fastjet;
 
 /// very dumb matching routine, expected to work with at most two jets.
 /// It returns true if it manages to return at least one valid
-/// matching between subtracted and hard, using a deltaR <= 0.2 rule.
+/// matching between subtracted and hard, using a deltaR <= maxdeltaR rule.
 /// If needed, it performs approprate swaps.
 /// If only one matching is found the sub vector is resized to 1.
 /// If no matching is found it returns false.
 ///
-bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard) {
-   double maxdeltaR = 0.2;
+bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) {
    if ( sub.size() == 2  && hard.size() == 2 ) {
        if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
            PseudoJet tmp = hard[0];
@@ -169,7 +168,7 @@ int main (int argc, char ** argv) {
      // for the jet transverse momentum.
      // Also fill an histogram of offset v. rapidity, to appreciate the effect
      // of rho rescaling
-     if ( match(subtracted_jets, hard_jets) ) {
+     if ( match(subtracted_jets, hard_jets, maxdeltaR) ) {
         for (unsigned int i=0; i < subtracted_jets.size(); i++) {
            double deltapt = subtracted_jets[i].pt() - hard_jets[i].pt();
            offset.add_entry(deltapt);
