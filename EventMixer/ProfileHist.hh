@@ -1,23 +1,23 @@
-#ifndef __AVERAGINGHIST_HH__
-#define __AVERAGINGHIST_HH__
+#ifndef __PROFILEHIST_HH__
+#define __PROFILEHIST_HH__
 
 #include "SimpleHist.hh"
 
 /// class which will provide average of entries going into each bin
-class AveragingHist {
+class ProfileHist {
 public:
 
-  AveragingHist() {}
+  ProfileHist() {}
 
-  AveragingHist(double minv, double maxv, int n) {
+  ProfileHist(double minv, double maxv, int n) {
     declare(minv, maxv, n);
   }
 
-  AveragingHist(double minv, double maxv, unsigned int n) {
+  ProfileHist(double minv, double maxv, unsigned int n) {
     declare(minv, maxv, n);
   }
 
-  AveragingHist(double minv, double maxv, double bin_size) {
+  ProfileHist(double minv, double maxv, double bin_size) {
     declare(minv, maxv, int(0.5+(maxv-minv)/bin_size));
   }
 
@@ -71,18 +71,19 @@ public:
 
   /// return the standard deviation of the current bin
   double stddev(int i) const {
-    double avg = average(i);
-    double result = sqrt(abs(_sum2[i]/_weights[i] - avg*avg));
-    return result;
+   if (_nentries[i] > 1) {
+     double avg = average(i);
+     double result = 
+          sqrt(abs(_sum2[i]/_weights[i] - avg*avg));
+     return result;
+   } else {
+      return 0.0;
+   }   
   }
 
   /// return the error on the average of the current bin
   double error(int i) const {
-    if (_nentries[i] > 1) {
-      return stddev(i) / sqrt(_nentries[i]-1.0);
-    } else {
-      return 0.0;
-    }
+      return stddev(i) / sqrt(_nentries[i]);
   }
 
   /// return the number of entries in the current bin
@@ -96,7 +97,7 @@ private:
 };
 
 //----------------------------------------------------------------------
-inline void output_noNaN(const AveragingHist hist, 
+inline void output_noNaN(const ProfileHist hist, 
                    std::ostream * ostr = (&std::cout)) {
   
   for (unsigned i = 0; i < hist.size(); i++) {
@@ -114,7 +115,7 @@ inline void output_noNaN(const AveragingHist hist,
 
 
 //----------------------------------------------------------------------
-inline void output_avg_and_sqr_noNaN(const AveragingHist hist, 
+inline void output_avg_and_sqr_noNaN(const ProfileHist hist, 
                    std::ostream * ostr = (&std::cout)) {
   
   for (unsigned i = 0; i < hist.size(); i++) {
@@ -132,4 +133,4 @@ inline void output_avg_and_sqr_noNaN(const AveragingHist hist,
 }
 
 
-#endif //  __AVERAGINGHIST_HH__
+#endif //  __PROFILEHIST_HH__
