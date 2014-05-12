@@ -104,7 +104,7 @@ int main (int argc, char ** argv) {
      vector<PseudoJet> hard_event, pileup_event;
      SelectorIsHard().sift(full_event, hard_event, pileup_event); 
 
-     // cluster hard event only                                                     
+     // cluster hard event only (Note: area may not be needed here)                                      
      ClusterSequenceArea cs_hard(hard_event,jet_def,area_def);
      // cluster full event (hard + pileup)
      ClusterSequenceArea cs_full(full_event,jet_def,area_def);
@@ -160,6 +160,10 @@ int main (int argc, char ** argv) {
   cout << "\n\n# offset_v_rapidity" << endl;
   cout << "# binlo binmid binhi avg std err avgsquares" << endl;
   output_noNaN(offset_v_rapidity);
+
+  // free allocated memory
+  delete rescaling;
+  delete gmbge;
 }
 
 
