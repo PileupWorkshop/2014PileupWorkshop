@@ -29,7 +29,7 @@
 #include "PU14.hh"
 #include "AverageAndError.hh"
 #include "CorrelationCoefficient.hh"
-#include "AveragingHist.hh"
+#include "ProfileHist.hh"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/GridMedianBackgroundEstimator.hh"
 #include "fastjet/tools/Subtractor.hh"
@@ -45,38 +45,8 @@ using namespace fastjet;
 /// If only one matching is found the sub vector is resized to 1.
 /// If no matching is found it returns false.
 ///
-bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) {
-   if ( sub.size() == 2  && hard.size() == 2 ) {
-       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
-           PseudoJet tmp = hard[0];
-	   hard[0] = hard[1];
-	   hard[1] = tmp;
-	   //cout << "Swapped" << endl;
-       }
-       if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
-       return true;
-   } 
-   else if (sub.size() == 1 && hard.size() == 2 ) {
-      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
-           PseudoJet tmp = hard[0];
-	   hard[0] = hard[1];
-	   hard[1] = tmp;
-      }
-      return true;
-   }      
-   else if (sub.size() == 2 && hard.size() == 1 ) {
-      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[1].delta_R(hard[0]) <= maxdeltaR ) {
-	   sub[0] = sub[1];
-      }
-      sub.resize(1);
-      return true;
-   }
-   else if (sub.size() == 1 && hard.size() == 1 ) {
-      if ( sub[0].delta_R(hard[0]) <= maxdeltaR ) { return true; }
-   }
-   //cout << "matching false" << endl;
-   return false; 
-}
+bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR);
+
 ////////////////////////////////////////////////////////////////////////////////////
 
 int main (int argc, char ** argv) {
@@ -100,7 +70,7 @@ int main (int argc, char ** argv) {
   cout << "# sel_jets: " << sel_jets.description() << endl;
   AverageAndError npu, offset;
   CorrelationCoefficient subhardcorr;
-  AveragingHist offset_v_rapidity(-rapmax,rapmax,0.25);
+  ProfileHist offset_v_rapidity(-rapmax,rapmax,0.25);
   
   // define background estimator (grid type, does not need to recluster)
   GridMedianBackgroundEstimator * gmbge = new GridMedianBackgroundEstimator(rapmax,0.55);
@@ -190,4 +160,42 @@ int main (int argc, char ** argv) {
   cout << "\n\n# offset_v_rapidity" << endl;
   cout << "# binlo binmid binhi avg std err avgsquares" << endl;
   output_noNaN(offset_v_rapidity);
+}
+
+
+
+/// very dumb matching routine, expected to work with at most two jets.
+/// It returns true if it manages to return at least one valid
+/// matching between subtracted and hard, using a deltaR <= maxdeltaR rule.
+/// If needed, it performs approprate swaps.
+/// If only one matching is found the sub vector is resized to 1.
+/// If no matching is found it returns false.
+///
+bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) {
+   if ( sub.size() == 2  && hard.size() == 2 ) {
+       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+	   swap(hard[0],hard[1]);
+	   //cout << "Swapped" << endl;
+       }
+       if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+       return true;
+   } 
+   else if (sub.size() == 1 && hard.size() == 2 ) {
+      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+	   swap(hard[0],hard[1]);
+      }
+      return true;
+   }      
+   else if (sub.size() == 2 && hard.size() == 1 ) {
+      if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[1].delta_R(hard[0]) <= maxdeltaR ) {
+	   sub[0] = sub[1];
+      }
+      sub.resize(1);
+      return true;
+   }
+   else if (sub.size() == 1 && hard.size() == 1 ) {
+      if ( sub[0].delta_R(hard[0]) <= maxdeltaR ) { return true; }
+   }
+   //cout << "matching false" << endl;
+   return false; 
 }
