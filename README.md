@@ -6,10 +6,9 @@ software for the [CERN Pileup
 Workshop](https://indico.cern.ch/event/306155/) in May 2014.
 
 
-Useful reading
---------------
+Useful reading: see the file [READING.md](READING.md) 
+---------------
 
-In a while we'll be adding a list of useful papers here.
 
 Software
 ========
