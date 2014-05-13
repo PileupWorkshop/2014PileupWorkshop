@@ -34,6 +34,7 @@
 #include "fastjet/tools/GridMedianBackgroundEstimator.hh"
 #include "fastjet/tools/Subtractor.hh"
 #include <iomanip>      // std::setprecision
+#include <cassert>
 
 using namespace std;
 using namespace fastjet;
@@ -176,6 +177,11 @@ int main (int argc, char ** argv) {
 /// If no matching is found it returns false.
 ///
 bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) {
+   // check size of vectors
+   if(sub.size() > 2 || hard.size() > 2 ) {
+      cerr << "\nError: match() only works with vectors of size <= 2 for the time being.\nAborting." << endl;
+      assert(false);  
+   }   
    if ( sub.size() == 2  && hard.size() == 2 ) {
        if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
 	   swap(hard[0],hard[1]);
@@ -187,8 +193,8 @@ bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) 
    else if (sub.size() == 1 && hard.size() == 2 ) {
       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
 	   swap(hard[0],hard[1]);
+         return true;
       }
-      return true;
    }      
    else if (sub.size() == 2 && hard.size() == 1 ) {
       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[1].delta_R(hard[0]) <= maxdeltaR ) {
