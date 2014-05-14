@@ -16,5 +16,6 @@ ATLAS papers:
 jets](http://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2014-018/)
 (and in [CDS](http://cds.cern.ch/record/1700870)).
 - [Pileup subtraction and suppression for jets](http://cds.cern.ch/record/1570994)
+- [Performance of jet substructure techniques for large-R jets in proton-proton collisions at sqrt(s) = 7 TeV using the ATLAS detector](http://arxiv.org/abs/1306.4945)
 
 CMS papers:
