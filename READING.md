@@ -8,6 +8,7 @@ Other theory papers:
 - [On the use of charged-track information to subtract neutral pileup](http://arxiv.org/abs/1404.7353)
 - [Soft Drop](http://arxiv.org/abs/1402.2657)
 - [Jet Cleansing](http://arxiv.org/abs/1309.4777)
+- [Particle-level pileup subtraction for jets and jet shapes](http://arxiv.org/abs/1403.3108)
 - [Scale-Invariant Resonance Tagging](http://arxiv.org/abs/1303.6636)
 
 ATLAS papers:
