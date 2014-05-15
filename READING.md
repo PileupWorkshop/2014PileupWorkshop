@@ -9,7 +9,6 @@ Other theory papers:
 - [Soft Drop](http://arxiv.org/abs/1402.2657)
 - [Jet Cleansing](http://arxiv.org/abs/1309.4777)
 - [Particle-level pileup subtraction for jets and jet shapes](http://arxiv.org/abs/1403.3108)
-- [Scale-Invariant Resonance Tagging](http://arxiv.org/abs/1303.6636)
 
 ATLAS papers:
 - [Tagging and suppression of pileup
@@ -19,3 +18,8 @@ jets](http://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2014-01
 - [Performance of jet substructure techniques for large-R jets in proton-proton collisions at sqrt(s) = 7 TeV using the ATLAS detector](http://arxiv.org/abs/1306.4945)
 
 CMS papers:
+
+- [Jet Energy Corrections determination](http://cds.cern.ch/record/1308178?ln=en) with [latest updated plots](http://cms.cern.ch/iCMS/jsp/openfile.jsp?type=DP&year=2013&files=DP2013_033.pdf)
+- [PU Jet Identification](http://cds.cern.ch/record/1581583?ln=en)
+- [Identifying Hadronically Decaying Vector Bosons Merged into a Single Jet](http://cds.cern.ch/record/1577417?ln=en)
+- [Boosted Top Jet Tagging at CMS](http://cds.cern.ch/record/1647419?ln=en)
