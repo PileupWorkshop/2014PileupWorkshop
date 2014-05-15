@@ -1,6 +1,6 @@
 # gnuplot file
 
-set term postscript enhanced 
+set term postscript enhanced colour linewidth 2 dashlength 2
 
 filename='example02.ps'
 set output filename
