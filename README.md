@@ -9,6 +9,16 @@ Workshop](https://indico.cern.ch/event/306155/) in May 2014.
 Useful reading: see the file [READING.md](READING.md) 
 ---------------
 
+Project suggestions
+===================
+
+- are we better off with massless or massive jet inputs?
+
+- comparing new methods on identical samples
+
+- comparing event-wide v. local PU suppression methods
+
+- your own...
 
 Software
 ========
@@ -33,9 +43,13 @@ The current directory structure is as follows:
 Getting started
 ---------------
 
+Download the software from github if you haven't already done so:
+
+    git clone https://github.com/PileupWorkshop/2014PileupWorkshop.git
+
 If fastjet-config is not in your path, place a .fastjet file containing the path
 to the top-level fastjet installation directory (i.e. without the /bin/ part) in each of the
-directories where you'll run ./mkmk. Then:
+directories where you'll run ./mkmk (see below). Then:
 
 In the EventMixer/ directory run
   
@@ -46,7 +60,38 @@ In the example/ directory run
 
     ./mkmk
     make
+
+First try out a very simple few-line test program that illustrates
+some basic features of reading events
+
     ./test -hard ../sample-events/dummy.pu14
 
+Next try a program that mixes hard and pileup events and prints out a
+couple of characteristics
 
+    ./example01 -hard ../sample-events/lhc14-pythia8-4C-dijet50-nev20.pu14.gz \
+                -pileup ../sample-events/lhc14-pythia8-4C-minbias-nev100.pu14.gz \
+                -npu 20 -nev 2
 
+This adds a fixed number of pileup events (20) to each hard event
+(sorry, no Poisson fluctuations yet!).
+
+The last example that's currently in place, takes hard and pileup
+events, runs area-based pileup subtraction, and generates some
+histograms statistics on the quality of the subtraction. 
+
+    ./example02 -hard ../sample-events/lhc14-pythia8-4C-dijet50-nev20.pu14.gz \
+                -pileup ../sample-events/lhc14-pythia8-4C-minbias-nev100.pu14.gz \
+                -npu 5 -nev 20 > output.dat
+
+and look inside output.dat to see what's there. To actually get sensible
+answers, you'll need more than 20 events ("-nev 20"). For that, run with the
+big event samples (see above). You can plot results with
+
+    gnuplot example02.gp
+
+which will produce a file example02.ps.
+
+Look inside the [example02.cc](blob/master/example/example02.cc)
+program to see some of the options. The matching of full jets and hard
+jets is performed with a simple geometrical method for now.

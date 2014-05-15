@@ -71,7 +71,7 @@ int main (int argc, char ** argv) {
   cout << "# sel_jets: " << sel_jets.description() << endl;
   AverageAndError npu, offset;
   CorrelationCoefficient subhardcorr;
-  ProfileHist offset_v_rapidity(-rapmax,rapmax,0.25);
+  ProfileHist offset_v_rapidity(-rapmax,rapmax,0.50);
   
   // define background estimator (grid type, does not need to recluster)
   GridMedianBackgroundEstimator * gmbge = new GridMedianBackgroundEstimator(rapmax,0.55);
@@ -159,7 +159,7 @@ int main (int argc, char ** argv) {
 
   // output histograms
   cout << "\n\n# offset_v_rapidity" << endl;
-  cout << "# binlo binmid binhi avg std err avgsquares" << endl;
+  cout << "# binlo binmid binhi avg stddev err avgsquares" << endl;
   output_noNaN(offset_v_rapidity);
 
   // free allocated memory
