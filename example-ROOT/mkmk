@@ -1,0 +1,3 @@
+#!/bin/bash
+../scripts/mkcxx.pl -f -i '-I../EventMixer' -l '-L../EventMixer -lEventMixer -lz' -r
+
