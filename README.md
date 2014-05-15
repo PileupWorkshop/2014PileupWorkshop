@@ -92,6 +92,6 @@ big event samples (see above). You can plot results with
 
 which will produce a file example02.ps.
 
-Look inside the [example02.cc](blob/master/example/example02.cc)
+Look inside the [example02.cc](example/example02.cc)
 program to see some of the options. The matching of full jets and hard
 jets is performed with a simple geometrical method for now.
