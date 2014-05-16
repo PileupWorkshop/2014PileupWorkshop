@@ -206,7 +206,7 @@ push @src, <*.cpp>;
 push @src, <*.f>;
 push @src, <*.f90>;
 push @src, <*.c>;
-push @src, <*.C>;
+#push @src, <*.C>;
 foreach $path (@PATH) {
   push @src, <$path/*.cc>;
   push @src, <$path/*.cpp>;
