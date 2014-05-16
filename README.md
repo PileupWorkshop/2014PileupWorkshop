@@ -39,6 +39,12 @@ The current directory structure is as follows:
   files, also accessible through the web at
   [http://cern.ch/puws2014/events/](http://cern.ch/puws2014/events/).  File names should be fairly self-explanatory. 
 
+- if you're running on lxplus and you don't already have fastjet, add
+
+      /afs/cern.ch/user/p/puws2014/public/fastjet/bin/
+
+  to your path.
+
 
 Getting started
 ---------------
@@ -102,33 +108,33 @@ FastJet-contrib:
 
 We have provided a branch with development versions of a few tools 
 
-  svn co https://fastjet.hepforge.org/svn/contrib/branches/1.012-alpha-PUWS14.1
+  svn co http://fastjet.hepforge.org/svn/contrib/branches/1.012-alpha-PUWS14.1
 
 or, create a file in your contrib directory, called contribs.local,
 with the following contents
 
-  # addition of a SafeAreaSubtractor (including "rho_m") and SafeNpCSubtractor
-  GenericSubtractor                tags/2.0.0-alpha-PUWS14.1
-  
-  # SoftKiller
-  SoftKiller                       tags/1.0.0-alpha-PUWS14.1
-  
-  # ModifiedMassDropTagged and SoftDrop
-  RecursiveTools                   tags/1.0-alpha-PUWS14.1
-  
-  # other relevant contribs included in stable releases
-  JetCleanser                      tags/1.0.0
-  ConstituentSubtractor            tags/1.0.0
+    # addition of a SafeAreaSubtractor (including "rho_m") and SafeNpCSubtractor
+    GenericSubtractor                tags/2.0.0-alpha-PUWS14.1
+    
+    # SoftKiller
+    SoftKiller                       tags/1.0.0-alpha-PUWS14.1
+    
+    # ModifiedMassDropTagged and SoftDrop
+    RecursiveTools                   tags/1.0-alpha-PUWS14.1
+    
+    # other relevant contribs included in stable releases
+    JetCleanser                      tags/1.0.0
+    ConstituentSubtractor            tags/1.0.0
 
 
 Installation (see README in fastjet-contrib for more details):  
 
-  ./scripts/update-contribs.sh
-  ./configure    # assumes fastjet-config is in your path
-
-  make
-  make check  # optional
-  make install
+    ./scripts/update-contribs.sh
+    ./configure    # assumes fastjet-config is in your path
+    
+    make
+    make check  # optional
+    make install
 
 Then add the relevant -lContribXXX -lContribYYY to your Makefile.
 
@@ -137,11 +143,12 @@ your FastJet directory which can interfere with prior installations of
 fastjet-contrib.
 
 Shared-library alternative:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
+
 If you're using shared FastJet libraries, you can try out 
 
-  make fragile-shared
-  make check  # optional
-  make fragile-shared-install
+    make fragile-shared
+    make check  # optional
+    make fragile-shared-install
 
 Then add the relevant -lfastjetcontribfragile to your Makefile
