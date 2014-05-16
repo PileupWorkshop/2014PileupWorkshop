@@ -1,1 +1,0 @@
-./example01 -hard ../sample-events/lhc14-pythia8-4C-dijet50-nev1e5.pu14.gz  -pileup ../sample-events/lhc14-pythia8-4C-minbias-nev1e6.pu14.gz -npu 80 -nev 100 -R 1.0
