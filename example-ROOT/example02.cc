@@ -115,16 +115,6 @@ int main (int argc, char ** argv) {
   float fTJetM       [MaxNJets];
   float fTJetPtTruth [MaxNJets];
 
-  // initialization 
-  for(int ij=0; ij<MaxNJets; ++ij){
-      fTJetPt       [ij] = -999;
-      fTJetEta      [ij] = -999;
-      fTJetPhi      [ij] = -999;
-      fTJetM        [ij] = -999;
-
-      fTJetPtTruth  [ij] = -999;
-
-  }
   tT->Branch("EventNumber",               &fTEventNumber,            "EventNumber/I");
   tT->Branch("NPV",                       &fTNPV,                    "NPV/I");
   tT->Branch("NJets",                     &fTNJets,                  "NJets/I");
@@ -133,7 +123,7 @@ int main (int argc, char ** argv) {
   tT->Branch("JetPhi",                    &fTJetPhi,                 "JetPhi[NJets]/F");
   tT->Branch("JetM",                      &fTJetM,                   "JetM[NJets]/F");
   tT->Branch("NJetsTruth",                &fTNJetsTruth,             "NJetsTruth/I");
-  tT->Branch("JetPtTruth",                &fTJetPtTruth,             "JetPtTruth[NJets]/F");
+  tT->Branch("JetPtTruth",                &fTJetPtTruth,             "JetPtTruth[NJetsTruth]/F");
   // done with tTree 
   
   // loop over events
@@ -143,6 +133,10 @@ int main (int argc, char ** argv) {
      iev++;
 
      cout << iev << " " << nev << endl;
+
+     // Reset counters
+     fTNJets         = 0;
+     fTNJetsTruth    = 0;
 
      // 
      fTEventNumber = iev;
@@ -194,7 +188,6 @@ int main (int argc, char ** argv) {
      for (unsigned int i=0; i < hard_jets.size(); i++) {
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
         if (fTNJetsTruth == MaxNJets) continue;
-        if( fTNJetsTruth == MaxNJets) continue;
         fTJetPtTruth [fTNJetsTruth] = hard_jets[i].pt();
         fTNJetsTruth++;
      }

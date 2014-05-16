@@ -111,7 +111,7 @@ FastJet-contrib:
 
 We have provided a branch with development versions of a few tools 
 
-  svn co https://fastjet.hepforge.org/svn/contrib/branches/1.012-alpha-PUWS14.1
+  svn co http://fastjet.hepforge.org/svn/contrib/branches/1.012-alpha-PUWS14.1
 
 or, create a file in your contrib directory, called contribs.local,
 with the following contents
