@@ -113,28 +113,28 @@ We have provided a branch with development versions of a few tools
 or, create a file in your contrib directory, called contribs.local,
 with the following contents
 
-  # addition of a SafeAreaSubtractor (including "rho_m") and SafeNpCSubtractor
-  GenericSubtractor                tags/2.0.0-alpha-PUWS14.1
-  
-  # SoftKiller
-  SoftKiller                       tags/1.0.0-alpha-PUWS14.1
-  
-  # ModifiedMassDropTagged and SoftDrop
-  RecursiveTools                   tags/1.0-alpha-PUWS14.1
-  
-  # other relevant contribs included in stable releases
-  JetCleanser                      tags/1.0.0
-  ConstituentSubtractor            tags/1.0.0
+    # addition of a SafeAreaSubtractor (including "rho_m") and SafeNpCSubtractor
+    GenericSubtractor                tags/2.0.0-alpha-PUWS14.1
+    
+    # SoftKiller
+    SoftKiller                       tags/1.0.0-alpha-PUWS14.1
+    
+    # ModifiedMassDropTagged and SoftDrop
+    RecursiveTools                   tags/1.0-alpha-PUWS14.1
+    
+    # other relevant contribs included in stable releases
+    JetCleanser                      tags/1.0.0
+    ConstituentSubtractor            tags/1.0.0
 
 
 Installation (see README in fastjet-contrib for more details):  
 
-  ./scripts/update-contribs.sh
-  ./configure    # assumes fastjet-config is in your path
-
-  make
-  make check  # optional
-  make install
+    ./scripts/update-contribs.sh
+    ./configure    # assumes fastjet-config is in your path
+    
+    make
+    make check  # optional
+    make install
 
 Then add the relevant -lContribXXX -lContribYYY to your Makefile.
 
@@ -146,8 +146,8 @@ Shared-library alternative:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you're using shared FastJet libraries, you can try out 
 
-  make fragile-shared
-  make check  # optional
-  make fragile-shared-install
+    make fragile-shared
+    make check  # optional
+    make fragile-shared-install
 
 Then add the relevant -lfastjetcontribfragile to your Makefile
