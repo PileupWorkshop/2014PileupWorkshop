@@ -80,7 +80,7 @@ couple of characteristics
                 -npu 20 -nev 2
 
 This adds a fixed number of pileup events (20) to each hard event
-(sorry, no Poisson fluctuations yet!).
+(sorry, no Poisson fluctuations yet!). 
 
 The last example that's currently in place, takes hard and pileup
 events, runs area-based pileup subtraction, and generates some
@@ -102,6 +102,9 @@ Look inside the [example02.cc](example/example02.cc)
 program to see some of the options. The matching of full jets and hard
 jets is performed with a simple geometrical method for now.
 
+*NEW*: If you add the option -chs, charged particles from pileup are
+scaled by a factor 10^{-60}, which is effectively charged-hadron
+subtraction.
 
 FastJet-contrib:
 ----------------
