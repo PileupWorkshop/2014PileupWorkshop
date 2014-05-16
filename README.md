@@ -39,6 +39,12 @@ The current directory structure is as follows:
   files, also accessible through the web at
   [http://cern.ch/puws2014/events/](http://cern.ch/puws2014/events/).  File names should be fairly self-explanatory. 
 
+- if you're running on lxplus and you don't already have fastjet, add
+
+      /afs/cern.ch/user/p/puws2014/public/fastjet/bin/
+
+  to your path.
+
 
 Getting started
 ---------------
