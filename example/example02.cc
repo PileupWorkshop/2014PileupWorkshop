@@ -62,8 +62,8 @@ int main (int argc, char ** argv) {
   cout << "# " << cmdline.command_line() << "\n#" << endl;
   
   // some definitions
-  JetDefinition jet_def(antikt_algorithm,R);         // the jet definition
-  AreaDefinition area_def(active_area);              // the area definition
+  JetDefinition jet_def(antikt_algorithm,R);             // the jet definition
+  AreaDefinition area_def(active_area_explicit_ghosts);  // the area definition
   cout << "# jet_def: "  << jet_def.description() << endl;            
   cout << "# area_def: "  << area_def.description() << endl;           
   // selects two hardest jets in event, and THEN select only those within rapmax-R
