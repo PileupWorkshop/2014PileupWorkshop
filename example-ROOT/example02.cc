@@ -108,17 +108,22 @@ int main (int argc, char ** argv) {
   int   fTEventNumber   = 0;
   int   fTNPV           = 0;
   int   fTNJets         = 0;
-  float fTJetPt [MaxNJets];
-  float fTJetEta[MaxNJets];
-  float fTJetPhi[MaxNJets];
-  float fTJetM  [MaxNJets];
+  int   fTNJetsTruth    = 0;
+  float fTJetPt      [MaxNJets];
+  float fTJetEta     [MaxNJets];
+  float fTJetPhi     [MaxNJets];
+  float fTJetM       [MaxNJets];
+  float fTJetPtTruth [MaxNJets];
 
   // initialization 
   for(int ij=0; ij<MaxNJets; ++ij){
-      fTJetPt [ij] = -999;
-      fTJetEta[ij] = -999;
-      fTJetPhi[ij] = -999;
-      fTJetM  [ij] = -999;
+      fTJetPt       [ij] = -999;
+      fTJetEta      [ij] = -999;
+      fTJetPhi      [ij] = -999;
+      fTJetM        [ij] = -999;
+
+      fTJetPtTruth  [ij] = -999;
+
   }
   tT->Branch("EventNumber",               &fTEventNumber,            "EventNumber/I");
   tT->Branch("NPV",                       &fTNPV,                    "NPV/I");
@@ -127,6 +132,8 @@ int main (int argc, char ** argv) {
   tT->Branch("JetEta",                    &fTJetEta,                 "JetEta[NJets]/F");
   tT->Branch("JetPhi",                    &fTJetPhi,                 "JetPhi[NJets]/F");
   tT->Branch("JetM",                      &fTJetM,                   "JetM[NJets]/F");
+  tT->Branch("NJetsTruth",                &fTNJetsTruth,             "NJetsTruth/I");
+  tT->Branch("JetPtTruth",                &fTJetPtTruth,             "JetPtTruth[NJets]/F");
   // done with tTree 
   
   // loop over events
@@ -186,6 +193,10 @@ int main (int argc, char ** argv) {
      if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
      for (unsigned int i=0; i < hard_jets.size(); i++) {
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
+        if (fTNJetsTruth == MaxNJets) continue;
+        if( fTNJetsTruth == MaxNJets) continue;
+        fTJetPtTruth [fTNJetsTruth] = hard_jets[i].pt();
+        fTNJetsTruth++;
      }
      
      // calculate quality measures, offset and dispersion and correlation coefficient,
@@ -229,6 +240,8 @@ int main (int argc, char ** argv) {
 
 
 
+
+
 /// very dumb matching routine, expected to work with at most two jets.
 /// It returns true if it manages to return at least one valid
 /// matching between subtracted and hard, using a deltaR <= maxdeltaR rule.
@@ -243,13 +256,27 @@ bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) 
       assert(false);  
    }   
    if ( sub.size() == 2  && hard.size() == 2 ) {
-       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
-	   swap(hard[0],hard[1]);
-	   //cout << "Swapped" << endl;
+       if ( sub[0].delta_R(hard[0]) <= maxdeltaR ) {
+          if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+	  return true;
        }
-       if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
-       return true;
-   } 
+       if ( sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+          swap(hard[0],hard[1]);
+          if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+	  return true;
+       }
+       if ( sub[1].delta_R(hard[0]) <= maxdeltaR ) {
+          swap(sub[0],sub[1]);
+	  sub.resize(1);
+	  return true;
+       }      
+       if ( sub[1].delta_R(hard[1]) <= maxdeltaR ) { 
+          swap(hard[0],hard[1]);
+          swap(sub[0],sub[1]);
+	  sub.resize(1);       
+          return true;
+       }
+   }
    else if (sub.size() == 1 && hard.size() == 2 ) {
       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
 	   swap(hard[0],hard[1]);
@@ -269,5 +296,3 @@ bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) 
    //cout << "matching false" << endl;
    return false; 
 }
-
-
