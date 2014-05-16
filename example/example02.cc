@@ -183,13 +183,27 @@ bool match(vector<PseudoJet> & sub, vector<PseudoJet> & hard, double maxdeltaR) 
       assert(false);  
    }   
    if ( sub.size() == 2  && hard.size() == 2 ) {
-       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
-	   swap(hard[0],hard[1]);
-	   //cout << "Swapped" << endl;
+       if ( sub[0].delta_R(hard[0]) <= maxdeltaR ) {
+          if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+	  return true;
        }
-       if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
-       return true;
-   } 
+       if ( sub[0].delta_R(hard[1]) <= maxdeltaR ) {
+          swap(hard[0],hard[1]);
+          if ( sub[1].delta_R(hard[1]) > maxdeltaR ) { sub.resize(1); }
+	  return true;
+       }
+       if ( sub[1].delta_R(hard[0]) <= maxdeltaR ) {
+          swap(sub[0],sub[1]);
+	  sub.resize(1);
+	  return true;
+       }      
+       if ( sub[1].delta_R(hard[1]) <= maxdeltaR ) { 
+          swap(hard[0],hard[1]);
+          swap(sub[0],sub[1]);
+	  sub.resize(1);       
+          return true;
+       }
+   }
    else if (sub.size() == 1 && hard.size() == 2 ) {
       if ( sub[0].delta_R(hard[0]) > maxdeltaR  &&  sub[0].delta_R(hard[1]) <= maxdeltaR ) {
 	   swap(hard[0],hard[1]);
