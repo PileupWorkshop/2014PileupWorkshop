@@ -143,7 +143,8 @@ your FastJet directory which can interfere with prior installations of
 fastjet-contrib.
 
 Shared-library alternative:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
+
 If you're using shared FastJet libraries, you can try out 
 
     make fragile-shared
