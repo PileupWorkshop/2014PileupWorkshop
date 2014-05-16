@@ -25,7 +25,7 @@ Software
 
 The current directory structure is as follows:
 
-- EventMixer/ provides the basis of a library for reading events, mixing hard
+- Framework/ provides the basis of a library for reading events, mixing hard
   and pileup events, etc.
 
 - example/ will contain a handful of examples
@@ -51,7 +51,7 @@ If fastjet-config is not in your path, place a .fastjet file containing the path
 to the top-level fastjet installation directory (i.e. without the /bin/ part) in each of the
 directories where you'll run ./mkmk (see below). Then:
 
-In the EventMixer/ directory run
+In the Framework/ directory run
   
     ./mkmk
     make
