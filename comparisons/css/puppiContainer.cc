@@ -120,8 +120,17 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
         if(_pfParticles[i0].user_index() == 3 ) pWeight = 0;
         if(_pfParticles[i0].user_index()  < 2 && pWeight*_pfParticles[i0].pt() < wptCutC) continue;
         if(pWeight < 0.1) continue;
-        
-        PseudoJet curjet( pWeight*_pfParticles[i0].px(), pWeight*_pfParticles[i0].py(), pWeight*_pfParticles[i0].pz(), pWeight*_pfParticles[i0].e());
+
+        //----------------------------------------------------------------------        
+        // G.Soyez, 2014-05-17,22.22
+        //
+        // Constructing the output based on the 4-vector components
+        // looses the UserInfo. Used the one below instead
+        //----------------------------------------------------------------------        
+
+        //PseudoJet curjet( pWeight*_pfParticles[i0].px(), pWeight*_pfParticles[i0].py(), pWeight*_pfParticles[i0].pz(), pWeight*_pfParticles[i0].e());
+        PseudoJet curjet = pWeight*_pfParticles[i0];
+
         curjet.set_user_index(_pfParticles[i0].user_index());
         particles.push_back(curjet);
     }
