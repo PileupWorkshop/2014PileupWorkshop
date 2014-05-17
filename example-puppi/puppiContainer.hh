@@ -19,6 +19,13 @@ public:
     std::vector<fastjet::PseudoJet> pfFetch(){ return _pfParticles; }
     std::vector<fastjet::PseudoJet> pfchsFetch(){ return _pfchsParticles; }
 
+    std::vector<fastjet::PseudoJet> pfFetch_PU14(){ return _pfParticles_PU14; }
+    std::vector<fastjet::PseudoJet> pfchsFetch_PU14(){ return _pfchsParticles_PU14; }
+    
+    std::vector<fastjet::PseudoJet> fetchNeutrals(){ return _neutrals; }
+    std::vector<fastjet::PseudoJet> fetchChargedLV(){ return _chargedLV; }
+    std::vector<fastjet::PseudoJet> fetchChargedPU(){ return _chargedPU; }
+
 protected:
 
     double var_within_R(int iId, const vector<PseudoJet> & particles, const PseudoJet& centre, double R);
@@ -26,6 +33,9 @@ protected:
     double goodVar(PseudoJet &iPart,std::vector<PseudoJet> &iParts, int iOpt, double R0);
     double compute(int iOpt,double iVal,double iMed,double iRMS);
     void getRMSAvg(int iOpt,std::vector<fastjet::PseudoJet> &iConstits,std::vector<fastjet::PseudoJet> &iParticles,std::vector<int> &iIsPU,double iQuant,double iPtRMS, double R0);
+
+    std::vector<PseudoJet> _pfParticles_PU14;
+    std::vector<PseudoJet> _pfchsParticles_PU14;
     
     std::vector<PseudoJet> _pfParticles;
     std::vector<PseudoJet> _pfchsParticles;
