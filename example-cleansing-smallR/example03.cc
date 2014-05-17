@@ -40,7 +40,6 @@
 #include <cmath>
 
 #include "fastjet/contrib/JetCleanser.hh"
-#include "fastjet/contrib/VertexJets.hh"
 #include "TTree.h"
 #include "TFile.h"
 
@@ -110,19 +109,9 @@ int main (int argc, char ** argv) {
   // make sure there are no unused command-line arguments
   cmdline.assert_all_options_used();
   
-  // selectors for vertex jets
+  // selectors for cleansing
   Selector SelectorHStracks =    SelectorVertexNumber(0) * SelectorIsCharged()  ;
   Selector SelectorPUtracks = (!SelectorVertexNumber(0)) * SelectorIsCharged()  ;
-  // corrJVF for large R jets
-  contrib::VertexJets    vertexjet(SelectorPUtracks, SelectorHStracks, JetDefinition(kt_algorithm, 0.3));
-  vertexjet.set_corrJVF_scale_factor (1);
-  vertexjet.set_corrJVF_cut          (-1);
-  vertexjet.set_trimming_fcut        (0.05);
-  vertexjet.set_subtractor           (&sub);
-  // corrJVF for small R jets
-  contrib::VertexJets    vertexjet_small(SelectorPUtracks, SelectorHStracks);
-  vertexjet_small.set_corrJVF_scale_factor (0.005);
-  vertexjet_small.set_corrJVF_cut          (-1);
 
 
   /// Cleansing  
@@ -144,7 +133,6 @@ int main (int argc, char ** argv) {
   float fTJetEta     [MaxNJets];
   float fTJetPhi     [MaxNJets];
   float fTJetM       [MaxNJets];
-  float fTJetCorrJVF [MaxNJets];
   float fTJetPtTruth [MaxNJets];
   float fTJetJVFClPt [MaxNJets];
   float fTJetJVFClEta[MaxNJets];
@@ -158,7 +146,6 @@ int main (int argc, char ** argv) {
   tT->Branch("JetEta",                    &fTJetEta,                 "JetEta[NJets]/F");
   tT->Branch("JetPhi",                    &fTJetPhi,                 "JetPhi[NJets]/F");
   tT->Branch("JetM",                      &fTJetM,                   "JetM[NJets]/F");
-  tT->Branch("JetCorrJVF",                &fTJetCorrJVF,             "JetCorrJVF[NJets]/F");
   //
   tT->Branch("NJetsTruth",                &fTNJetsTruth,             "NJetsTruth/I");
   tT->Branch("JetPtTruth",                &fTJetPtTruth,             "JetPtTruth[NJetsTruth]/F");
@@ -197,11 +184,6 @@ int main (int argc, char ** argv) {
      vector<PseudoJet> hard_event, pileup_event;
      SelectorIsHard().sift(full_event, hard_event, pileup_event); 
      
-     // set corrJVF 
-     vertexjet      .set_tot_n_pu_tracks      (SelectorPUtracks(full_event).size());
-     vertexjet_small.set_tot_n_pu_tracks      (SelectorPUtracks(full_event).size());
-     cout << "SelectorPUtracks(full_event).size()" << SelectorPUtracks(full_event).size() << endl;
-
      // cluster hard event only (Note: area may not be needed here)                                      
      ClusterSequenceArea cs_hard(hard_event,jet_def,area_def);
      // cluster full event (hard + pileup)
@@ -231,15 +213,12 @@ int main (int argc, char ** argv) {
      // write out jets in subtracted event
      if ( iev <= maxprintout ) { cerr << "Subtracted event" << endl; }
      for (unsigned int i=0; i < 4U && i < subtracted_jets.size(); i++) {
-        PseudoJet resultjet      = vertexjet_small(subtracted_jets[i]);
-        float corrJVF = resultjet.structure_of<contrib::VertexJets>().corrJVF();
          // fill ttree 
         if (fTNJets == MaxNJets) continue;
         fTJetPt       [fTNJets] =  subtracted_jets[i].pt();
         fTJetEta      [fTNJets] =  subtracted_jets[i].eta();
         fTJetPhi      [fTNJets] =  subtracted_jets[i].phi();
         fTJetM        [fTNJets] =  subtracted_jets[i].m();
-        fTJetCorrJVF  [fTNJets] =  corrJVF;
         fTNJets++;
 
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << subtracted_jets[i] << endl; }
