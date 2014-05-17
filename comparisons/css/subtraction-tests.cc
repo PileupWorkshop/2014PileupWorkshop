@@ -35,6 +35,8 @@
 using namespace std;
 using namespace fastjet;
 
+bool puppi;
+
 /// a specific class that handles Matteo's format
 ///
 /// Usage: 
@@ -294,6 +296,8 @@ int main (int argc, char ** argv) {
   double jet_ptmin  = cmdline.value<double>("-jet-ptmin",20);
   double R = cmdline.value<double>("-R",0.4);
 
+  puppi = ! cmdline.present("-nopuppi");
+
   // some containier for what we want to output
   OutputInfo output(cmdline.value<string>("-out"), mixer.npu(), jet_ptmin);
   int iev_periodic=10;
@@ -474,6 +478,8 @@ int main (int argc, char ** argv) {
   contrib::SoftKiller soft_killer(particle_rapmax, sk_gridsize, sel_soft_killer);
   output.header << "#   description     = " << soft_killer.description();
 
+  
+
   //......................................................................
   // PUPPI --- copied on 2014-05-17, 18:53.
   //   git rev-list --count HEAD
@@ -558,7 +564,7 @@ int main (int argc, char ** argv) {
     // for the CHS we scale chg=PU particles back up
     // ----------------------------------------------------------------------
     
-    if (is_chs){
+    if (puppi && is_chs){
       // rescale up chg-PU
       vector<PseudoJet> rescaled_pileup_event;
       for (unsigned int i=0; i<pileup_event.size(); i++){
