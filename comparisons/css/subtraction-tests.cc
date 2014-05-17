@@ -584,7 +584,7 @@ int main (int argc, char ** argv) {
     //----------------------------------------------------------------------
     // PUPPI 
     //
-    // They assume CHS events, so we do not run it fir the full and
+    // They assume CHS events, so we do not run it for the full and
     // for the CHS we scale chg=PU particles back up
     // ----------------------------------------------------------------------
     
