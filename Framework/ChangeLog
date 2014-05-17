@@ -1,3 +1,8 @@
+2014-05-17  Gavin Salam  <gavin.salam@cern.ch>
+
+	* Matching.hh: 
+	added description() and delta_R_max() members
+
 2014-05-17  Gregory Soyez  <soyez@fastjet.fr>
 
 	* EventMixer.{hh,cc}:

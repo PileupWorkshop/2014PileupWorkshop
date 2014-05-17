@@ -3,7 +3,10 @@
 
 #include <vector>
 #include <limits>
+#include <string>
+#include <sstream>
 #include "fastjet/PseudoJet.hh"
+
 
 /// class to help match hard jets with full jets (e.g. pileup subtracted jets). 
 ///
@@ -48,6 +51,16 @@ public:
     }
     if (smallest_delta_R2 < pow(_delta_R_max,2)) {return m;}
     else                                         {return 0;} 
+  }
+
+  /// returns the value of delta_R_max
+  double delta_R_max() const {return _delta_R_max;}
+
+  /// returns a textual description
+  std::string description() const {
+    std::ostringstream ostr;
+    ostr << "Geometrical matching class with delta_R_max = " << delta_R_max();
+    return ostr.str();
   }
 
 private:
