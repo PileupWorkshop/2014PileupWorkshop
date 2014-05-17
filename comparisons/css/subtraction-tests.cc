@@ -104,7 +104,7 @@ public:
     // Mattteo's output of the form 
     //   name  <delta>  sigma_delta   corr.coef  match.eff  match.eff_error
     ostr << "#----------------------------------------------------------------------" << endl;
-    ostr << "# npu    ptmin           <delta>                sigma_delta        corr.coef       Njets(>20GeV)            match.eff           <hard>        name " << endl;
+    ostr << "# npu    ptmin        <delta>                sigma_delta        corr.coef        Njets(>20GeV)          match.eff              <hard>              name " << endl;
     for(map<string,MatteoAverageAndError>::iterator result = matteos.begin(); 
         result != matteos.end(); result++) {
       ostr << setprecision(4) 
@@ -116,7 +116,7 @@ public:
            << setw(8) << result->second.njets.average()     << " +- " << setw(8) << result->second.njets.error()       << "    "
            << setw(8) << result->second.match_eff.average() << " +- " << setw(8) << result->second.match_eff.error()   
            << setw(8) << result->second.avg_hard.average()  << " +- " << setw(8) << result->second.avg_hard.error()    << "    "
-           << "     # " << setw(-20) << result->first << endl;
+           << "   # " << setw(-20) << result->first << endl;
     }
     ostr << "#----------------------------------------------------------------------" << endl;
 
