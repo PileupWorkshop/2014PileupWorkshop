@@ -90,7 +90,7 @@ public:
 
     cout << "Output of results for nev = " << iev << endl;
 
-    ostr << header.str();
+    ostr << header.str() << endl;
     ostr << "# nev = " << iev << endl;
   
     // write out averages
