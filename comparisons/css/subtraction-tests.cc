@@ -573,13 +573,17 @@ int main (int argc, char ** argv) {
       }
 
       // apply PUPPI
-      puppiContainer curEvent(hard_event, pileup_event);
+      puppiContainer curEvent(hard_event, rescaled_pileup_event);
       vector<PseudoJet> puppi_event = curEvent.puppiFetch(mixer.npu());
 
       // // check if there is any chg-PU particle coming out
-      // cout << "#PUPPI event size = " << puppi_event.size();
-      // cout << "#PUPPI Chg-PU count = " << (SelectorCharged()*(!SelectorHard())).count(puppi_event);
-      // cout << "#PUPPI PU size = " << (!SelectorHard()).count(puppi_event);
+      // cout << "#PUPPI event size = " << puppi_event.size() << endl;
+      // cout << "#PUPPI Chg-PU count = " << (SelectorCharged()*(!SelectorHard())).count(puppi_event) << endl;
+      // cout << "#PUPPI PU size = " << (!SelectorHard()).count(puppi_event) << endl;
+      // if (puppi_event[0].has_user_info<PU14>())
+      //   cout << "PUPPI has info" << endl;
+      // else
+      //   cout << "PUPPI does not have info" << endl;
 
       // cluster it
       ClusterSequence cs_puppi(puppi_event,jet_def);
