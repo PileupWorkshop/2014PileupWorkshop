@@ -48,7 +48,7 @@ class MatteoAverageAndError{
 public:
   MatteoAverageAndError(){}
   
-  AverageAndError match_eff, delta, njets;
+  AverageAndError match_eff, delta, njets, avg_hard;
   CorrelationCoefficient correl;
   
   void add_entry(){
@@ -57,6 +57,7 @@ public:
 
   void add_entry(double hard, double full){
     match_eff += 1.0;
+    avg_hard += hard;
     delta += full-hard;
     correl.add_entry(hard, full);
   }
@@ -103,17 +104,18 @@ public:
     // Mattteo's output of the form 
     //   name  <delta>  sigma_delta   corr.coef  match.eff  match.eff_error
     ostr << "#----------------------------------------------------------------------" << endl;
-    ostr << "# npu     ptmin       <delta>             sigma_delta       corr.coef     Njets(>20GeV)        match.eff       name " << endl;
+    ostr << "# npu    ptmin           <delta>                sigma_delta        corr.coef       Njets(>20GeV)            match.eff           <hard>        name " << endl;
     for(map<string,MatteoAverageAndError>::iterator result = matteos.begin(); 
         result != matteos.end(); result++) {
       ostr << setprecision(4) 
            << setw(4) << _npu   << "    "
-           << setw(6) << _ptmin << "    "
-           << setw(6) << result->second.delta.average()     << " +- " << setw(6) << result->second.delta.error()       << "    "
-           << setw(6) << result->second.delta.sd()          << " +- " << setw(6) << result->second.delta.error_on_sd() << "    "
-           << setw(6) << result->second.correl.r()          << "    "
-           << setw(6) << result->second.njets.average()     << " +- " << setw(6) << result->second.njets.error()       << "    "
-           << setw(6) << result->second.match_eff.average() << " +- " << setw(6) << result->second.match_eff.error()   
+           << setw(4) << _ptmin << "    "
+           << setw(8) << result->second.delta.average()     << " +- " << setw(8) << result->second.delta.error()       << "    "
+           << setw(8) << result->second.delta.sd()          << " +- " << setw(8) << result->second.delta.error_on_sd() << "    "
+           << setw(8) << result->second.correl.r()          << "    "
+           << setw(8) << result->second.njets.average()     << " +- " << setw(8) << result->second.njets.error()       << "    "
+           << setw(8) << result->second.match_eff.average() << " +- " << setw(8) << result->second.match_eff.error()   
+           << setw(8) << result->second.avg_hard.average()  << " +- " << setw(8) << result->second.avg_hard.error()    << "    "
            << "     # " << setw(-20) << result->first << endl;
     }
     ostr << "#----------------------------------------------------------------------" << endl;
