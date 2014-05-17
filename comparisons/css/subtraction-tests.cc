@@ -24,6 +24,8 @@
 #include "fastjet/contrib/VertexJets.hh"
 #include "fastjet/contrib/SoftKiller.hh"
 
+#include "puppiContainer.hh"
+
 #include <iomanip>      // std::setprecision
 #include <cassert>
 #include <cmath>
@@ -431,15 +433,20 @@ int main (int argc, char ** argv) {
 
   //......................................................................
   // SoftKiller
+  double sk_gridsize = cmdline.value("-sk:gridsize", (is_chs) ? 0.5 : 0.4);
   output.header << "# Parameters for the SoftKiller" << endl;
-  output.header << "#   grid size for SoftKiller = " << grid_size << endl;
+  output.header << "#   grid size for SoftKiller = " << sk_gridsize << endl;
   cout << "# Parameters for the SoftKiller" << endl;
   cout << "#   grid size for SoftKiller = " << grid_size << endl;
   Selector sel_soft_killer = is_chs ? (!SelectorCharged()) : SelectorIdentity();
-  contrib::SoftKiller soft_killer(particle_rapmax, grid_size, sel_soft_killer);
+  contrib::SoftKiller soft_killer(particle_rapmax, sk_gridsize, sel_soft_killer);
   output.header << "#   description     = " << soft_killer.description();
 
-      
+  //......................................................................
+  // PUPPI --- copied on 2014-05-17, 18:53.
+  //   git rev-list --count HEAD
+  //   105
+
   // make sure there are no unused command-line arguments
   cmdline.assert_all_options_used();
   
@@ -550,18 +557,65 @@ int main (int argc, char ** argv) {
       // (if any)
       const PseudoJet * match = matching.match(hard_jets[i]);
       if (match){
-        output.matteos["pt_sofk_killer"].add_entry(hard_jets[i].pt(), match->pt());
-        output.matteos["m_sofk_killer"].add_entry(hard_jets[i].m(), match->m());
+        output.matteos["pt_soft_killer"].add_entry(hard_jets[i].pt(), match->pt());
+        output.matteos["m_soft_killer"].add_entry(hard_jets[i].m(), match->m());
       } else {
-        output.matteos["pt_sofk_killer"].add_entry();
-        output.matteos["m_sofk_killer"].add_entry();
+        output.matteos["pt_soft_killer"].add_entry();
+        output.matteos["m_soft_killer"].add_entry();
       }
     }
      
     // keep track of number of jets above 20 GeV within the jet rapidity window
     unsigned int njets_sk = ( SelectorPtMin(20.0) && SelectorAbsRapMax(jet_rapmax) ).count(sk_jets);
-    output.matteos["pt_sofk_killer"].njets += njets_sk;
-    output.matteos["m_sofk_killer"].njets += njets_sk;
+    output.matteos["pt_soft_killer"].njets += njets_sk;
+    output.matteos["m_soft_killer"].njets += njets_sk;
+
+    // output from time to time
+    if (iev % iev_periodic == 0){
+       if (iev == 15*iev_periodic) iev_periodic*=10;
+       output.write(iev);
+    }
+
+
+    // //----------------------------------------------------------------------
+    // // PUPPI 
+    // //----------------------------------------------------------------------
+    // 
+    // // apply PUPPI
+    // puppiContainer curEvent(hard_event, pileup_event);
+    // vector<PseudoJet> puppi_event = curEvent.puppiFetch(mixer.npu());
+    // 
+    // // cluster it
+    // ClusterSequence cs_puppi(puppi_event,jet_def);
+    //       
+    // // get all jets in full event
+    // vector<PseudoJet> puppi_jets = sorted_by_pt(cs_puppi.inclusive_jets());
+    // if ( iev <= maxprintout ) { cerr << "Puppi event" << endl; }
+    // for (unsigned int i=0; i < 4U && i < puppi_jets.size(); i++) {
+    //   if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << puppi_jets[i] << endl; }
+    // }
+    // 
+    // // set up the set of full/subtracted jets from which to match
+    // matching.set_full_jets(puppi_jets);
+    // 
+    // // run over the hard jets
+    // for (unsigned int i=0; i < hard_jets.size(); i++) {
+    //   // for each hard jet, find the corresponding full/subtracted jet that matches
+    //   // (if any)
+    //   const PseudoJet * match = matching.match(hard_jets[i]);
+    //   if (match){
+    //     output.matteos["pt_puppi"].add_entry(hard_jets[i].pt(), match->pt());
+    //     output.matteos["m_puppi"].add_entry(hard_jets[i].m(), match->m());
+    //   } else {
+    //     output.matteos["pt_puppi"].add_entry();
+    //     output.matteos["m_puppi"].add_entry();
+    //   }
+    // }
+    //  
+    // // keep track of number of jets above 20 GeV within the jet rapidity window
+    // unsigned int njets_puppi = ( SelectorPtMin(20.0) && SelectorAbsRapMax(jet_rapmax) ).count(puppi_jets);
+    // output.matteos["pt_puppi"].njets += njets_puppi;
+    // output.matteos["m_puppi"].njets += njets_puppi;
 
     // output from time to time
     if (iev % iev_periodic == 0){
