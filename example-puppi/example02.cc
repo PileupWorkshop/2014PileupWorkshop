@@ -25,12 +25,14 @@ struct JetInfo {
   float ptraw;
   float ptclean;
   float pttrim;
+  float pttrimsafe;
   float eta;
   float phi;
   float m;
   float mraw;
   float mclean;
-  float mtrim;
+  float mtrim;  
+  float mtrimsafe;
 };
 void getConstitsForCleansing(vector<PseudoJet> inputs, vector<PseudoJet> &oNeutrals, vector<PseudoJet> &oChargedLV, vector<PseudoJet> &oChargedPU){
     for (unsigned int i = 0; i < inputs.size(); i++){
@@ -39,7 +41,7 @@ void getConstitsForCleansing(vector<PseudoJet> inputs, vector<PseudoJet> &oNeutr
         if (inputs[i].user_index() == 3) oChargedPU.push_back(inputs[i]);
     }
 }
-void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, GridMedianBackgroundEstimator* iGMBE,Subtractor &iSub) { 
+void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, GridMedianBackgroundEstimator* iGMBE,Subtractor &iSub,bool iCHS) { 
   vector<PseudoJet> neutrals,chargedLV,chargedPU;
   getConstitsForCleansing(iJet.constituents(),neutrals,chargedLV,chargedPU);
   JetDefinition subjet_def(kt_algorithm,0.2);
@@ -55,38 +57,46 @@ void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, G
   // the two background estimators
   JetMedianBackgroundEstimator bge_rho(rho_range, clust_seq_rho);
   JetMedianBackgroundEstimator bge_rhom(rho_range, clust_seq_rho);
-  BackgroundJetPtMDensity m_density;
+  BackgroundJetPtMDensity m_density; 
   bge_rhom.set_jet_density_class(&m_density);
   // declare an area-median subtractor from this
-  contrib::SafeAreaSubtractor area_subtractor(&bge_rho, &bge_rhom);
+  contrib::SafeAreaSubtractor *area_subtractor = 0; 
+  if(!iCHS) area_subtractor = new contrib::SafeAreaSubtractor(&bge_rho, &bge_rhom);
+  if( iCHS) area_subtractor = new contrib::SafeAreaSubtractor(&bge_rho, &bge_rhom,SelectorIsCharged(),SelectorVertexNumber(0 ));
 
   //iGMBE->set_particles(iParticles);
-  PseudoJet lCorr =  area_subtractor(iJet);
+  PseudoJet lCorr =  (*area_subtractor)(iJet);
 
   fastjet::Filter trimmer( fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm, 0.3), fastjet::SelectorPtFractionMin(0.05)));
-  PseudoJet lTrim = (trimmer)(iJet);
-  iJetI.pt      = lCorr .pt();  
-  iJetI.ptraw   = iJet  .pt();
-  iJetI.ptclean = lClean.pt();
-  iJetI.pttrim  = lTrim .pt();
-  iJetI.eta     = iJet.eta();
-  iJetI.phi     = iJet.phi();
-  iJetI.mraw    = iJet.m();  
-  iJetI.m       = lCorr .m();  
-  iJetI.mclean  = lClean.m();  
-  iJetI.mtrim   = lTrim .m();
+  PseudoJet lTrim     = (trimmer)(iJet);
+  trimmer.set_subtractor(area_subtractor);
+  PseudoJet lTrimSafe = (trimmer)(iJet);
+  iJetI.pt          = lCorr     .pt();  
+  iJetI.ptraw       = iJet      .pt();
+  iJetI.ptclean     = lClean    .pt();
+  iJetI.pttrim      = lTrim     .pt();
+  iJetI.pttrimsafe  = lTrimSafe.pt();
+  iJetI.eta         = iJet     .eta();
+  iJetI.phi         = iJet     .phi();
+  iJetI.mraw        = iJet     .m();  
+  iJetI.m           = lCorr    .m();  
+  iJetI.mclean      = lClean   .m();  
+  iJetI.mtrim       = lTrim    .m();
+  iJetI.mtrimsafe   = lTrimSafe.m();
 }
 void setupTree(TTree *iTree,JetInfo &iJet,std::string iName) { 
-  iTree->Branch((iName+"pt"     ).c_str(),&iJet.pt     ,(iName+"pt/F"   ).c_str());
-  iTree->Branch((iName+"ptraw"  ).c_str(),&iJet.ptraw  ,(iName+"ptraw/F").c_str());
-  iTree->Branch((iName+"ptclean").c_str(),&iJet.ptclean,(iName+"ptclean/F").c_str());
-  iTree->Branch((iName+"pttrim" ).c_str(),&iJet.pttrim ,(iName+"pttrim/F").c_str());
-  iTree->Branch((iName+"eta"    ).c_str(),&iJet.eta    ,(iName+"eta/F"   ).c_str());
-  iTree->Branch((iName+"phi"    ).c_str(),&iJet.phi    ,(iName+"phi/F"   ).c_str());
-  iTree->Branch((iName+"m"      ).c_str(),&iJet.m      ,(iName+"m/F"     ).c_str());
-  iTree->Branch((iName+"mraw"   ).c_str(),&iJet.mraw   ,(iName+"mraw/F"  ).c_str());
-  iTree->Branch((iName+"mtrim"  ).c_str(),&iJet.mtrim  ,(iName+"mtrim/F" ).c_str());
-  iTree->Branch((iName+"mclean" ).c_str(),&iJet.mclean ,(iName+"mclean/F").c_str());
+  iTree->Branch((iName+"pt"        ).c_str(),&iJet.pt     ,(iName+"pt/F"   ).c_str());
+  iTree->Branch((iName+"ptraw"     ).c_str(),&iJet.ptraw  ,(iName+"ptraw/F").c_str());
+  iTree->Branch((iName+"ptclean"   ).c_str(),&iJet.ptclean,(iName+"ptclean/F").c_str());
+  iTree->Branch((iName+"pttrim"    ).c_str(),&iJet.pttrim ,(iName+"pttrim/F").c_str());
+  iTree->Branch((iName+"pttrimsafe").c_str(),&iJet.pttrim ,(iName+"pttrim/F").c_str());
+  iTree->Branch((iName+"eta"       ).c_str(),&iJet.eta    ,(iName+"eta/F"   ).c_str());
+  iTree->Branch((iName+"phi"       ).c_str(),&iJet.phi    ,(iName+"phi/F"   ).c_str());
+  iTree->Branch((iName+"m"         ).c_str(),&iJet.m      ,(iName+"m/F"     ).c_str());
+  iTree->Branch((iName+"mraw"      ).c_str(),&iJet.mraw   ,(iName+"mraw/F"  ).c_str());
+  iTree->Branch((iName+"mtrim"     ).c_str(),&iJet.mtrim  ,(iName+"mtrim/F" ).c_str());
+  iTree->Branch((iName+"mtrimsafe" ).c_str(),&iJet.mtrim  ,(iName+"mtrim/F" ).c_str());
+  iTree->Branch((iName+"mclean"    ).c_str(),&iJet.mclean ,(iName+"mclean/F").c_str());
 }
 //vector<PseudoJet> threeHardest(vector<PseudoJet> &iParts, JetDefinition &iJetDef, Selector &iSelector,std::vector<ClusterSequence> &iCSs) { 
   // cluster full event (hard + pileup)
@@ -150,7 +160,6 @@ int main (int argc, char ** argv) {
     clear(JPup);
     clear(JCHS);
     clear(JCHS2GeV);
-
     // increment event number    
     iev++;
     cout << "\nEvent " << iev << endl;
@@ -158,6 +167,7 @@ int main (int argc, char ** argv) {
     // extract particles from event 
     vector<PseudoJet> full_event = mixer.particles() ;
     vector<PseudoJet> hard_event;
+    vector<PseudoJet> gen_event; 
     vector<PseudoJet> pf_event; 
     vector<PseudoJet> pileup_event;
     vector<PseudoJet> puppi_event;
@@ -169,6 +179,7 @@ int main (int argc, char ** argv) {
     SelectorIsHard().sift(full_event, hard_event, pileup_event); 
     //////////////////////////////////////////////////////
     puppiContainer curEvent(hard_event, pileup_event);
+    gen_event       = curEvent.genFetch();
     puppi_event     = curEvent.puppiFetch(80);
     pf_event        = curEvent.pfFetch();
     chs_event       = curEvent.pfchsFetch(-1);
@@ -176,11 +187,11 @@ int main (int argc, char ** argv) {
     //////////////////////////////////////////////////////
     SoftKiller soft_killer   (0.4,0.4);
     SoftKiller soft_killerCHS(4.0,0.5, !SelectorCharged());
-    vector<PseudoJet> soft_event    = soft_killer(full_event);
+    vector<PseudoJet> soft_event    = soft_killer   (pf_event);
     vector<PseudoJet> softCHS_event = soft_killerCHS(chs_event);
 
     AreaDefinition area_def(active_area_explicit_ghosts,GhostedAreaSpec(SelectorAbsRapMax(4.0)));
-    ClusterSequenceArea pGen    (hard_event   ,jet_def,area_def);
+    ClusterSequenceArea pGen    (gen_event    ,jet_def,area_def);
     ClusterSequenceArea pPup    (puppi_event  ,jet_def,area_def);
     ClusterSequenceArea pPF     (pf_event     ,jet_def,area_def);
     ClusterSequenceArea pCHS    (chs_event    ,jet_def,area_def);
@@ -202,13 +213,13 @@ int main (int argc, char ** argv) {
       PseudoJet chs2GeVJet = match(genJets[i0],chs2GeVJets);
       PseudoJet softJet    = match(genJets[i0],softJets);
       PseudoJet softCHSJet = match(genJets[i0],softCHSJets);
-      setJet(genJets[i0],JGen    ,hard_event   ,gmbge,sub);
-      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub);
-      if(chsJet.pt()     != 0) setJet(chsJet,     JCHS    ,chs_event    ,gmbge,sub);
-      if(chs2GeVJet.pt() != 0) setJet(chs2GeVJet, JCHS2GeV,chs_event2GeV,gmbge,sub);
-      if(puppiJet.pt()   != 0) setJet(puppiJet  , JPup    ,puppi_event  ,gmbge,sub);
-      if(softJet.pt()    != 0) setJet(softJet   , JSoft   ,puppi_event  ,gmbge,sub);
-      if(softCHSJet.pt() != 0) setJet(softCHSJet, JSoftCHS,puppi_event  ,gmbge,sub);
+      setJet(genJets[i0],JGen    ,hard_event   ,gmbge,sub,false);
+      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub,true);
+      if(chsJet.pt()     != 0) setJet(chsJet,     JCHS    ,chs_event    ,gmbge,sub,true);
+      if(chs2GeVJet.pt() != 0) setJet(chs2GeVJet, JCHS2GeV,chs_event2GeV,gmbge,sub,true);
+      if(puppiJet.pt()   != 0) setJet(puppiJet  , JPup    ,puppi_event  ,gmbge,sub,true);
+      if(softJet.pt()    != 0) setJet(softJet   , JSoft   ,soft_event   ,gmbge,sub,false);
+      if(softCHSJet.pt() != 0) setJet(softCHSJet, JSoftCHS,softCHS_event,gmbge,sub,true);
       lTree->Fill();
     }
   }
