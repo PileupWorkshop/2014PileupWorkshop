@@ -1,0 +1,3 @@
+#!/bin/bash
+../../scripts/mkcxx.pl -f -i '-I../../Framework' -l '-L../../Framework -lEventMixer -lz'
+
