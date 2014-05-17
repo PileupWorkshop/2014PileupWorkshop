@@ -51,11 +51,12 @@ plotting
 
 File format for results
 -----------------------
-Use the following file format for each subtractor/observable/sample:
+Use the following file format for each subtractor/observable/sample (write out
+the "+-" to output):
 
      # comments  
-     npu      <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV
-
+     # npu      <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV
+       xxx       xxx +- yyy  xxx +- yyy      xxx             xxx +- yyy
 
 
 To be considered at a later stage
