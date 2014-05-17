@@ -55,8 +55,8 @@ Use the following file format for each subtractor/observable/sample (write out
 the "+-" to output):
 
      # comments  
-     # npu      <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV
-       xxx       xxx +- yyy  xxx +- yyy      xxx             xxx +- yyy
+     # npu    jet_ptmin  <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV   matching_efficiency
+       xxx    xxx        xxx +- yyy   xxx +- yyy      xxx             xxx +- yyy         xxx +- yyy
 
 
 To be considered at a later stage
