@@ -15,12 +15,19 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
     _pfParticles.resize(0);
     _genParticles.resize(0);
     _pfchsParticles.resize(0);
+
+    _pfParticles_PU14.resize(0);
+    _pfchsParticles_PU14.resize(0);
     
     _chargedLV.resize(0);
+    _chargedPU.resize(0);
+    _neutrals.resize(0);
     _isPU.resize(0);
     
     // loop over hard_event
     for (unsigned int i = 0; i < hard_event.size(); i++){
+        
+        if (fabs(hard_event[i].eta()) > 5 || hard_event[i].pt() < 0.1) continue;
         
         PseudoJet curParticle = hard_event[i];
         curParticle.set_user_index(-99);
@@ -31,9 +38,14 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
 
         
         if (charge_tmp != 0) _chargedLV.push_back(curParticle);
+        else _neutrals.push_back(curParticle);
+        
         _genParticles.push_back(curParticle);
         _pfParticles.push_back(curParticle);
         _pfchsParticles.push_back(curParticle);
+
+        _pfParticles_PU14.push_back(hard_event[i]);
+        _pfchsParticles_PU14.push_back(hard_event[i]);
         
         _isPU.push_back( 0 );
         
@@ -41,6 +53,8 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
 
     // loop over pileup_event
     for (unsigned int i = 0; i < pileup_event.size(); i++){
+
+        if (fabs(pileup_event[i].eta()) > 5 || pileup_event[i].pt() < 0.1) continue;
         
         PseudoJet curParticle = pileup_event[i];
         curParticle.set_user_index(-99);
@@ -50,7 +64,15 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
         else curParticle.set_user_index(1);
         
         _pfParticles.push_back(curParticle);
-        if (charge_tmp == 0) _pfchsParticles.push_back(curParticle);
+        _pfParticles_PU14.push_back(pileup_event[i]);
+        
+        if (charge_tmp == 0){
+            _pfchsParticles.push_back(curParticle);
+            _pfchsParticles_PU14.push_back(pileup_event[i]);
+        }
+        
+        if (charge_tmp != 0) _chargedPU.push_back(curParticle);
+        else _neutrals.push_back(curParticle);
     
         _isPU.push_back( 1 );
     }
@@ -69,15 +91,17 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     double R0 = 0.3;
     double R1 = 0.3;
     
+    cout << "pass1" << endl;
     // the chi2 2dof version
     getRMSAvg(13,_pfParticles,_chargedLV,_isPU,iQuant,0.5,R0);
     double lMed0=fMed;
     double lRMS0=fRMS;
     int lNEvents  = _vals.size();
-    
-    getRMSAvg(13,_pfParticles,_pfParticles,_isPU,0.5,0.2,R1);
-    double lMed1=fMed;
-    double lRMS1=fRMS;
+
+    //cout << "pass2" << endl;
+    //getRMSAvg(13,_pfParticles,_pfParticles,_isPU,0.5,0.2,R1);
+    //double lMed1=fMed;
+    //double lRMS1=fRMS;
     
     float wptCutC = 0.5;
     float wptCutF = 1.0;
@@ -85,28 +109,16 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     //a functional form, hard-coded for now
     wptCutC = 0.66667e-2*( (float) iPU ) + 0.1;
     wptCutF = 1.05e-2*( (float) iPU ) + 0.2;
-    
+
+    cout << "pass3" << endl;
     for(int i0 = 0; i0 < lNEvents; i0++) {
         double pWeight = 1;
         
-        // fill alpha values
-//        alphas_chLV.push_back(_vals[i0]);
-//        alphas_all.push_back(_vals[i0+lNEvents]);
-//        puppiWeights_chLV.push_back( compute(0,_vals[i0]           ,lMed0,lRMS0) );
-//        puppiWeights_all.push_back(  compute(0,_vals[i0+lNEvents]  ,lMed1,lRMS1) );
+        pWeight *= compute(0,_vals[i0],lMed0,lRMS0);
         
-        if(fabs(_pfParticles[i0].eta()) < 2.5){
-            //pWeight *= compute2dof(_vals[i0],lMed0,lRMS0,_vals[i0+lNEvents],lMed1,lRMS1);
-            pWeight *= compute(0,_vals[i0],lMed0,lRMS0);
-        }
-        if(fabs(_pfParticles[i0].eta()) > 2.5){
-            pWeight *= compute(0,_vals[i0+lNEvents]   ,lMed1,lRMS1);
-        }
-        //if(fabs(_pfParticles[i0].eta()) > 2.5) pWeight *= compute(0,_vals[i0+lNEvents*2.],lMed2,lRMS2);
         if(_pfParticles[i0].user_index() == 2 ) pWeight = 1;
         if(_pfParticles[i0].user_index() == 3 ) pWeight = 0;
-        if(_pfParticles[i0].user_index()  < 2 && pWeight*_pfParticles[i0].pt() < wptCutC && fabs(_pfParticles[i0].eta()) < 2.5) continue;
-        if(_pfParticles[i0].user_index()  < 2 && pWeight*_pfParticles[i0].pt() < wptCutF && fabs(_pfParticles[i0].eta()) > 2.5) continue;
+        if(_pfParticles[i0].user_index()  < 2 && pWeight*_pfParticles[i0].pt() < wptCutC) continue;
         if(pWeight < 0.1) continue;
         
         PseudoJet curjet( pWeight*_pfParticles[i0].px(), pWeight*_pfParticles[i0].py(), pWeight*_pfParticles[i0].pz(), pWeight*_pfParticles[i0].e());
