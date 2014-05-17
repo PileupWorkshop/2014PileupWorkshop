@@ -39,6 +39,10 @@
 #include <cassert>
 #include <cmath>
 
+#include "fastjet/contrib/JetCleanser.hh"
+#include "TTree.h"
+#include "TFile.h"
+
 using namespace std;
 using namespace fastjet;
 
@@ -82,7 +86,7 @@ int main (int argc, char ** argv) {
   Selector sel_particles = SelectorAbsRapMax(particle_rapmax);
   cout << "# sel_particles: " << sel_particles.description() << endl;
 
-  AverageAndError npu, njets, offset, matching_efficiency, pass_fraction;
+  AverageAndError npu, njets, offset, matching_efficiency;
   CorrelationCoefficient subhardcorr;
   ProfileHist offset_v_rapidity(-jet_rapmax,jet_rapmax,0.50);
 
@@ -105,12 +109,71 @@ int main (int argc, char ** argv) {
   // make sure there are no unused command-line arguments
   cmdline.assert_all_options_used();
   
+  // selectors for cleansing
+  Selector SelectorHStracks =    SelectorVertexNumber(0) * SelectorIsCharged()  ;
+  Selector SelectorPUtracks = (!SelectorVertexNumber(0)) * SelectorIsCharged()  ;
+
+
+  /// Cleansing  
+  contrib::JetCleanser jvf_cleanser_B(JetDefinition(kt_algorithm, 0.2), contrib::JetCleanser::jvf_cleansing, contrib::JetCleanser::input_nc_together);
+  jvf_cleanser_B.SetTrimming(0.);
+
+  // declare root Ttree and add branches ----------------------------------
+  TFile * tF = new TFile("example02.root", "RECREATE");
+  TTree * tT = new TTree("Events", "");
+
+  const int MaxNJets = 20; // max number of jets stored in Ttree
+
+  int   fTEventNumber   = 0;
+  int   fTNPV           = 0;
+  int   fTNJets         = 0;
+  int   fTNJetsJVFCl    = 0;
+  int   fTNJetsTruth    = 0;
+  float fTJetPt      [MaxNJets];
+  float fTJetEta     [MaxNJets];
+  float fTJetPhi     [MaxNJets];
+  float fTJetM       [MaxNJets];
+  float fTJetPtTruth [MaxNJets];
+  float fTJetJVFClPt [MaxNJets];
+  float fTJetJVFClEta[MaxNJets];
+  float fTJetJVFClPhi[MaxNJets];
+  float fTJetJVFClM  [MaxNJets];
+
+  tT->Branch("EventNumber",               &fTEventNumber,            "EventNumber/I");
+  tT->Branch("NPV",                       &fTNPV,                    "NPV/I");
+  tT->Branch("NJets",                     &fTNJets,                  "NJets/I");
+  tT->Branch("JetPt",                     &fTJetPt,                  "JetPt[NJets]/F");
+  tT->Branch("JetEta",                    &fTJetEta,                 "JetEta[NJets]/F");
+  tT->Branch("JetPhi",                    &fTJetPhi,                 "JetPhi[NJets]/F");
+  tT->Branch("JetM",                      &fTJetM,                   "JetM[NJets]/F");
+  //
+  tT->Branch("NJetsTruth",                &fTNJetsTruth,             "NJetsTruth/I");
+  tT->Branch("JetPtTruth",                &fTJetPtTruth,             "JetPtTruth[NJetsTruth]/F");
+  //
+  tT->Branch("NJetsJVFCl",                &fTNJetsJVFCl,             "NJetsJVFCl/I");
+  tT->Branch("JetJVFClPt",                &fTJetJVFClPt,             "JetJVFClPt[NJetsJVFCl]/F");
+  tT->Branch("JetJVFClEta",               &fTJetJVFClEta,            "JetJVFClEta[NJetsJVFCl]/F");
+  tT->Branch("JetJVFClPhi",               &fTJetJVFClPhi,            "JetJVFClPhi[NJetsJVFCl]/F");
+  tT->Branch("JetJVFClM",                 &fTJetJVFClM,              "JetJVFClM[NJetsJVFCl]/F");
+  // done with tTree 
+  
   // loop over events ----------------------------------------------------------------------
   int iev = 0;
   while ( mixer.next_event() && iev < nev ) {
      // increment event number    
      iev++;
      
+     // Reset counters
+     fTNJets         = 0;
+     fTNJetsTruth    = 0;
+     fTNJetsJVFCl    = 0;
+
+     // 
+     fTEventNumber = iev;
+     fTNPV         = mixer.npu();
+
+
+
      // extract particles from event
      vector<PseudoJet> full_event = sel_particles(mixer.particles());
      if ( iev <= maxprintout ) { cerr << "\nEvent " << iev << endl; }
@@ -120,23 +183,9 @@ int main (int argc, char ** argv) {
      // extract hard event
      vector<PseudoJet> hard_event, pileup_event;
      SelectorIsHard().sift(full_event, hard_event, pileup_event); 
-
+     
      // cluster hard event only (Note: area may not be needed here)                                      
      ClusterSequenceArea cs_hard(hard_event,jet_def,area_def);
-     // select two hardest jets in hard event
-     vector<PseudoJet> hard_jets = sel_jets(sorted_by_pt(cs_hard.inclusive_jets()));
-     if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
-     for (unsigned int i=0; i < hard_jets.size(); i++) {
-        if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
-     }
-     
-     // if no hard jets pass the selection, continue on to the next event
-     if (hard_jets.size() == 0) {
-       pass_fraction += 0;
-       continue;
-     }
-     pass_fraction += 1;
-
      // cluster full event (hard + pileup)
      ClusterSequenceArea cs_full(full_event,jet_def,area_def);
           
@@ -145,6 +194,15 @@ int main (int argc, char ** argv) {
      if ( iev <= maxprintout ) { cerr << "Full event" << endl; }
      for (unsigned int i=0; i < 4U && i < full_jets.size(); i++) {
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << full_jets[i] << endl; }
+        PseudoJet JVFcleansedJet = jvf_cleanser_B( full_jets[i], SelectorHStracks(full_jets[i].constituents()),  SelectorPUtracks(full_jets[i].constituents()));
+        cout << "uncorr jet " << full_jets[i].pt() << " eta " << full_jets[i].eta() << " cleansed " << JVFcleansedJet.pt() << " " << SelectorHStracks(full_jets[i].constituents()).size() << " " <<  SelectorPUtracks(full_jets[i].constituents()).size() << endl;
+         // fill ttree 
+        if (fTNJetsJVFCl == MaxNJets) continue;
+        fTJetJVFClPt       [fTNJetsJVFCl] =  JVFcleansedJet.pt();
+        fTJetJVFClEta      [fTNJetsJVFCl] =  JVFcleansedJet.eta();
+        fTJetJVFClPhi      [fTNJetsJVFCl] =  JVFcleansedJet.phi();
+        fTJetJVFClM        [fTNJetsJVFCl] =  JVFcleansedJet.m();
+        fTNJetsJVFCl++;
      }
      
      // subtract the full jets
@@ -155,9 +213,28 @@ int main (int argc, char ** argv) {
      // write out jets in subtracted event
      if ( iev <= maxprintout ) { cerr << "Subtracted event" << endl; }
      for (unsigned int i=0; i < 4U && i < subtracted_jets.size(); i++) {
+         // fill ttree 
+        if (fTNJets == MaxNJets) continue;
+        fTJetPt       [fTNJets] =  subtracted_jets[i].pt();
+        fTJetEta      [fTNJets] =  subtracted_jets[i].eta();
+        fTJetPhi      [fTNJets] =  subtracted_jets[i].phi();
+        fTJetM        [fTNJets] =  subtracted_jets[i].m();
+        fTNJets++;
+
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << subtracted_jets[i] << endl; }
      }
         
+     // select two hardest jets in hard event
+     vector<PseudoJet> hard_jets = sel_jets(sorted_by_pt(cs_hard.inclusive_jets()));
+     if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
+     for (unsigned int i=0; i < hard_jets.size(); i++) {
+        if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
+        if (fTNJetsTruth == MaxNJets) continue;
+        fTJetPtTruth [fTNJetsTruth] = hard_jets[i].pt();
+        fTNJetsTruth++;
+     }
+     
+     
      // calculate quality measures, offset and dispersion and correlation coefficient,
      // for the jet transverse momentum.
      // Also fill an histogram of offset v. rapidity, to appreciate the effect
@@ -186,11 +263,12 @@ int main (int argc, char ** argv) {
      njets += ( SelectorPtMin(20.0)
                && SelectorAbsRapMax(jet_rapmax) ).count(subtracted_jets);
      
+     // fill tTree
+     tT->Fill();
      
   }  // end loop over events
 
   // output quality measures as a function of <npu>
-  cout << "# fraction of events passing the basic jet cuts = " << pass_fraction.average() << " +- " << pass_fraction.error() << endl;
   cout << "# npu    jet_ptmin     <DeltaO>           sigma_DeltaO     corr.coeff.     njets>20GeV        match_eff " << endl;     
   cout << setprecision(4) 
        << setw(4) << npu.average()    << "    "
@@ -206,6 +284,10 @@ int main (int argc, char ** argv) {
   cout << "\n\n# offset_v_rapidity" << endl;
   cout << "# binlo binmid binhi avg stddev err avgsquares" << endl;
   output_noNaN(offset_v_rapidity);
+  
+  // write ttree
+  tT->Write();
+  tF->Close();
 
   // free allocated memory
   delete rescaling;

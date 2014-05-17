@@ -102,9 +102,12 @@ Look inside the [example02.cc](example/example02.cc)
 program to see some of the options. The matching of full jets and hard
 jets is performed with a simple geometrical method for now.
 
-*NEW*: If you add the option -chs, charged particles from pileup are
+**NEW**: If you add the option -chs, charged particles from pileup are
 scaled by a factor 10^{-60}, which is effectively charged-hadron
 subtraction.
+
+**NOTE**: [example/example03.cc](example/example03.cc) illustrates code
+to get the output as described in [WORK.md](WORK.md).
 
 FastJet-contrib:
 ----------------
