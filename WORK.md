@@ -43,8 +43,9 @@ match to full with deltaR = 0.3 criterion
 
 How to compare (quality measures)
 ---------------------------------
-- offset v. dispersion (use trimmed jet as ref when using trimming). There' a
-template offset-v-dispersio.gp gnuplot macro in the example/ directory for quick
+- offset v. dispersion (use trimmed jet as ref when using trimming). 
+  There' a
+template offset-v-dispersion.gp gnuplot macro in the example/ directory for quick
 plotting
 - number of jets above 20 GeV as a function of npu
 
