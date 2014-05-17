@@ -53,7 +53,7 @@ File format for results
 -----------------------
 Use the following file format for each subtractor/observable/sample:
 
-# comments
+#comments  
 npu      <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV
 
 
