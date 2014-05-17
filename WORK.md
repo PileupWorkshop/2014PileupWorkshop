@@ -58,6 +58,19 @@ the "+-" to output):
      # npu    jet_ptmin  <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV   matching_efficiency
        xxx    xxx        xxx +- yyy   xxx +- yyy      xxx             xxx +- yyy         xxx +- yyy
 
+Template code
+-------------
+
+Look at [example/example03.cc](example/example03.cc) to see code that
+has the selection, matching and output as illustrated above. Run it
+for example with 
+
+    ./example03 -hard ../sample-events/lhc14-pythia8-4C-dijet50-nev20.pu14.gz \
+                -pileup ../sample-events/lhc14-pythia8-4C-minbias-nev100.pu14.gz \
+                -massless -npu 5 -nev 20 -jet-ptmin 20 > output.dat
+
+Adapt the -jet-ptmin option depending on what you plan to
+study. There's also a -chs option for running with CHS type events.
 
 To be considered at a later stage
 ---------------------------------
