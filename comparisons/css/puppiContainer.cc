@@ -91,7 +91,8 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     double R0 = 0.3;
     double R1 = 0.3;
     
-    cout << "pass1" << endl;
+    // MC+GPS commented out this cout
+    //cout << "pass1" << endl;
     // the chi2 2dof version
     getRMSAvg(13,_pfParticles,_chargedLV,_isPU,iQuant,0.5,R0);
     double lMed0=fMed;
@@ -110,7 +111,8 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     wptCutC = 0.66667e-2*( (float) iPU ) + 0.1;
     wptCutF = 1.05e-2*( (float) iPU ) + 0.2;
 
-    cout << "pass3" << endl;
+    // MC+GPS commented out this cout
+    //cout << "pass3" << endl;
     for(int i0 = 0; i0 < lNEvents; i0++) {
         double pWeight = 1;
         

@@ -23,3 +23,6 @@
 # emacs and other backups
 *~
 *.bak
+
+# mac things
+.DS_Store
