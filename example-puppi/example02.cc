@@ -10,6 +10,7 @@
 #include "fastjet/tools/JetMedianBackgroundEstimator.hh"
 #include "fastjet/tools/Subtractor.hh"
 #include "fastjet/contrib/SafeSubtractor.hh"
+#include "fastjet/contrib/SoftKiller.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
@@ -141,6 +142,8 @@ int main (int argc, char ** argv) {
   JetInfo JPup;     setupTree(lTree,JPup    ,"Puppi");
   JetInfo JCHS;     setupTree(lTree,JCHS    ,"CHS"  );
   JetInfo JCHS2GeV; setupTree(lTree,JCHS2GeV,"CHS2GeV");
+  JetInfo JSoft;    setupTree(lTree,JSoft   ,"SK"  );
+  JetInfo JSoftCHS; setupTree(lTree,JSoftCHS,"SKCHS");
   while ( mixer.next_event() && iev < nev ) {
     clear(JGen);
     clear(JPF);
@@ -171,28 +174,41 @@ int main (int argc, char ** argv) {
     chs_event       = curEvent.pfchsFetch(-1);
     chs_event2GeV   = curEvent.pfchsFetch( 2.);
     //////////////////////////////////////////////////////
+    SoftKiller soft_killer   (0.4,0.4);
+    SoftKiller soft_killerCHS(4.0,0.5, !SelectorCharged());
+    vector<PseudoJet> soft_event    = soft_killer(full_event);
+    vector<PseudoJet> softCHS_event = soft_killerCHS(chs_event);
+
     AreaDefinition area_def(active_area_explicit_ghosts,GhostedAreaSpec(SelectorAbsRapMax(4.0)));
     ClusterSequenceArea pGen    (hard_event   ,jet_def,area_def);
     ClusterSequenceArea pPup    (puppi_event  ,jet_def,area_def);
     ClusterSequenceArea pPF     (pf_event     ,jet_def,area_def);
     ClusterSequenceArea pCHS    (chs_event    ,jet_def,area_def);
     ClusterSequenceArea pCHS2GeV(chs_event2GeV,jet_def,area_def);
+    ClusterSequenceArea pSoft   (soft_event   ,jet_def,area_def);
+    ClusterSequenceArea pSoftCHS(softCHS_event,jet_def,area_def);
     vector<PseudoJet> genJets     = selector(sorted_by_pt(pGen    .inclusive_jets())); 
     vector<PseudoJet> puppiJets   = selector(sorted_by_pt(pPup    .inclusive_jets())); 
     vector<PseudoJet> pfJets      = selector(sorted_by_pt(pPF     .inclusive_jets())); 
     vector<PseudoJet> chsJets     = selector(sorted_by_pt(pCHS    .inclusive_jets())); 
     vector<PseudoJet> chs2GeVJets = selector(sorted_by_pt(pCHS2GeV.inclusive_jets())); 
+    vector<PseudoJet> softJets    = selector(sorted_by_pt(pSoft   .inclusive_jets())); 
+    vector<PseudoJet> softCHSJets = selector(sorted_by_pt(pSoftCHS.inclusive_jets())); 
     for(unsigned int i0 = 0; i0 < genJets.size(); i0++) {
       lIndex = i0;
       PseudoJet puppiJet   = match(genJets[i0],puppiJets);
       PseudoJet pfJet      = match(genJets[i0],pfJets   );
       PseudoJet chsJet     = match(genJets[i0],chsJets  );
       PseudoJet chs2GeVJet = match(genJets[i0],chs2GeVJets);
+      PseudoJet softJet    = match(genJets[i0],softJets);
+      PseudoJet softCHSJet = match(genJets[i0],softCHSJets);
       setJet(genJets[i0],JGen    ,hard_event   ,gmbge,sub);
       if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub);
       if(chsJet.pt()     != 0) setJet(chsJet,     JCHS    ,chs_event    ,gmbge,sub);
       if(chs2GeVJet.pt() != 0) setJet(chs2GeVJet, JCHS2GeV,chs_event2GeV,gmbge,sub);
       if(puppiJet.pt()   != 0) setJet(puppiJet  , JPup    ,puppi_event  ,gmbge,sub);
+      if(softJet.pt()    != 0) setJet(softJet   , JSoft   ,puppi_event  ,gmbge,sub);
+      if(softCHSJet.pt() != 0) setJet(softCHSJet, JSoftCHS,puppi_event  ,gmbge,sub);
       lTree->Fill();
     }
   }
