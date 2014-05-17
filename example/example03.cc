@@ -82,7 +82,7 @@ int main (int argc, char ** argv) {
   Selector sel_particles = SelectorAbsRapMax(particle_rapmax);
   cout << "# sel_particles: " << sel_particles.description() << endl;
 
-  AverageAndError npu, njets, offset, matching_efficiency;
+  AverageAndError npu, njets, offset, matching_efficiency, pass_fraction;
   CorrelationCoefficient subhardcorr;
   ProfileHist offset_v_rapidity(-jet_rapmax,jet_rapmax,0.50);
 
@@ -123,6 +123,20 @@ int main (int argc, char ** argv) {
 
      // cluster hard event only (Note: area may not be needed here)                                      
      ClusterSequenceArea cs_hard(hard_event,jet_def,area_def);
+     // select two hardest jets in hard event
+     vector<PseudoJet> hard_jets = sel_jets(sorted_by_pt(cs_hard.inclusive_jets()));
+     if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
+     for (unsigned int i=0; i < hard_jets.size(); i++) {
+        if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
+     }
+     
+     // if no hard jets pass the selection, continue on to the next event
+     if (hard_jets.size() == 0) {
+       pass_fraction += 0;
+       continue;
+     }
+     pass_fraction += 1;
+
      // cluster full event (hard + pileup)
      ClusterSequenceArea cs_full(full_event,jet_def,area_def);
           
@@ -144,13 +158,6 @@ int main (int argc, char ** argv) {
         if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << subtracted_jets[i] << endl; }
      }
         
-     // select two hardest jets in hard event
-     vector<PseudoJet> hard_jets = sel_jets(sorted_by_pt(cs_hard.inclusive_jets()));
-     if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
-     for (unsigned int i=0; i < hard_jets.size(); i++) {
-        if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
-     }
-     
      // calculate quality measures, offset and dispersion and correlation coefficient,
      // for the jet transverse momentum.
      // Also fill an histogram of offset v. rapidity, to appreciate the effect
@@ -183,6 +190,7 @@ int main (int argc, char ** argv) {
   }  // end loop over events
 
   // output quality measures as a function of <npu>
+  cout << "# fraction of events passing the basic jet cuts = " << pass_fraction.average() << " +- " << pass_fraction.error() << endl;
   cout << "# npu    jet_ptmin     <DeltaO>           sigma_DeltaO     corr.coeff.     njets>20GeV        match_eff " << endl;     
   cout << setprecision(4) 
        << setw(4) << npu.average()    << "    "

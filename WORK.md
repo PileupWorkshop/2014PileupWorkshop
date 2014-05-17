@@ -12,6 +12,25 @@ Signal samples
 - dijets (pt > 20, pt > 100, pt > 500), with UE off and massless particles
 - both full and CHS
 
+The samples are in the usual location
+([/afs/cern.ch/user/p/puws2014/public/events](file:///afs/cern.ch/user/p/puws2014/public/events)
+or
+[http://cern.ch/puws2014/events/](http://cern.ch/puws2014/events/)). 
+
+    lhc14-pythia8-4C-dijetsel20-noUE-nevsel1e5.pu14.gz
+    lhc14-pythia8-4C-dijetsel100-noUE-nevsel1e5.pu14.gz
+    lhc14-pythia8-4C-dijetsel500-noUE-nevsel1e5.pu14.gz
+
+Each event in those files has at least one jet with |y|<2.5 and above the
+pt [GeV] indicated after the "dijetsel" tag. They are intended to be
+used respectively for the analyses with 20, 50 and 100 GeV pt cuts. 
+
+The files have been produced with a generation cut at 80% of jet pt
+selection cut. For validation purposes, there are files (on afs)
+labelled .res that indicate the average number of jets with pt>20 GeV,
+|y|<2.5 in each sample.
+
+
 List of subtractors
 -------------------
 - Safearea
@@ -36,10 +55,21 @@ Pileup levels: 30, 60, 100, 140
 
 particles and jet selection
 ---------------------------
-  antikt R=0.4
   particles: |y| < 4
-  jets: select 2 hardest > 20, 100, 500 in hard event, and then |y| < 2.5, 
-match to full with deltaR = 0.3 criterion
+  jet definition: antikt R=0.4
+
+  jets: take the two hardest jets, then apply a selection of |y|<2.5,
+  and pt > 20 (or 100, or 500), and study the impact of pileup on any
+  jets that pass that selection. Pileup jets are matched to the hard
+  jets with a deltaR = 0.3 criterion.
+
+  A separate study counts the jets above 20 GeV with |y| < 2.5. That
+  count is only in events that have at one jet from the selection
+  described in the preceding paragraph.
+
+  Note that in example03.cc prior to revision 107 (git rev-list --count HEAD)
+  or hash d1b6590c2f2758d765c3... the number of jets was counted for
+  all events.
 
 How to compare (quality measures)
 ---------------------------------
