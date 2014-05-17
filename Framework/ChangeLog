@@ -1,0 +1,19 @@
+2014-05-17  Gavin Salam  <gavin.salam@cern.ch>
+
+	* Matching.hh: 
+	added description() and delta_R_max() members
+
+2014-05-17  Gregory Soyez  <soyez@fastjet.fr>
+
+	* EventMixer.{hh,cc}:
+	added a "-massless" option that would give events with massless particles
+
+2014-05-17  Gavin Salam  <gavin.salam@cern.ch>
+
+	* Matching.hh:                 *** ADDED ***
+	added a matching class
+
+2014-05-16  Gregory Soyez  <soyez@fastjet.fr>
+
+	* helpers.{hh,cc}:
+	added a "Width" class that computes the width/girth/angulatity(alpha=1) shape

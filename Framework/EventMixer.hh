@@ -16,8 +16,12 @@
 /// Currently the number of pileup events is fixed (not Poisson
 /// distributed).
 ///
-/// With the -chs option, the charged pileup particles come scaled by
-/// a factor 10^{-60} (this factor can be modified from within code).
+/// Additional options:
+///  -chs       when present, the charged pileup particles come scaled
+///             by a factor 10^{-60} (this factor can be modified from
+///             within code).
+///  -massless  when present, particles come massless
+///
 class EventMixer {
 public:
   EventMixer(CmdLine * cmdline);
@@ -40,13 +44,14 @@ public:
   /// current value of that factor.
   double chs_rescaling_factor() const {return _chs_rescaling_factor;}
 
-
   /// set the chs_rescaling factor. If this is equal to one (default),
   /// then no rescaling is performed
   void set_chs_rescaling_factor(double r) {_chs_rescaling_factor = r;}
 
+  /// return true if events are generated using massless particles
+  bool massless(){ return _massless;}
 
-
+  /// returns a description of what the EventMixer does (useful for bookkeeping)
   std::string description() const;
 
 private:
@@ -54,7 +59,10 @@ private:
   std::string _hard_name, _pileup_name;
   std::auto_ptr<EventSource> _hard, _pileup;
   int _npu;
+
   double _chs_rescaling_factor;
+  bool _massless;
+
   std::vector<fastjet::PseudoJet> _particles;
 };
 
