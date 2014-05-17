@@ -370,7 +370,6 @@ int main (int argc, char ** argv) {
   cout << "# Parameters for safe area subtraction" << endl;
   cout << "#   rapidity rescaling for rho = " << rescale << endl;
   cout << "#   grid size for GMBGE        = " << grid_size << endl;
-  
   if (is_chs){
     transformers.push_back(TransformerWithName(new contrib::SafeAreaSubtractor(gmbge, 0, SelectorCharged(), SelectorHard()), "safeareasub"));
   } else {
@@ -411,17 +410,9 @@ int main (int argc, char ** argv) {
   output.header << "#   description                = " << transformers.back().description() << endl;
 
   //......................................................................
-  // Cleansing
+  // Cleansing (CHS-only)
   double cleansing_Rsub  = cmdline.value("-cln:Rsub",  0.3);
   double cleansing_ftrim = cmdline.value("-cln:ftrim", 0.0);
-  output.header << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
-  output.header << "#   gamma0 = " << gamma0 << endl;
-  output.header << "#   Rsub   = " << cleansing_Rsub  << endl;
-  output.header << "#   ftrim  = " << cleansing_ftrim << endl;
-  cout << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
-  cout << "#   gamma0      = " << gamma0 << endl;
-  cout << "#   Rsub        = " << cleansing_Rsub  << endl;
-  cout << "#   ftrim       = " << cleansing_ftrim << endl;
   if (is_chs){
     transformers.push_back(TransformerWithName(new TJetCleanser(cleansing_Rsub,
                                                                 contrib::JetCleanser::linear_cleansing, 
@@ -430,13 +421,14 @@ int main (int argc, char ** argv) {
                                                                 gamma0, 0, 0, 0,
                                                                 1.0/mixer.chs_rescaling_factor()),
                                                "linear_cleansing"));
-  } else {
-    transformers.push_back(TransformerWithName(new TJetCleanser(cleansing_Rsub,
-                                                                contrib::JetCleanser::linear_cleansing, 
-                                                                contrib::JetCleanser::input_nc_separate, 
-                                                                cleansing_ftrim, 
-                                                                gamma0),
-                                               "linear_cleansing"));
+    output.header << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
+    output.header << "#   gamma0 = " << gamma0 << endl;
+    output.header << "#   Rsub   = " << cleansing_Rsub  << endl;
+    output.header << "#   ftrim  = " << cleansing_ftrim << endl;
+    cout << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
+    cout << "#   gamma0      = " << gamma0 << endl;
+    cout << "#   Rsub        = " << cleansing_Rsub  << endl;
+    cout << "#   ftrim       = " << cleansing_ftrim << endl;
   }
   // disabled cleansing description output because it covers multiple lines
   //output.header << "#   description = " << transformers.back().description() << endl;
@@ -561,43 +553,35 @@ int main (int argc, char ** argv) {
 
     //----------------------------------------------------------------------
     // PUPPI 
-    //----------------------------------------------------------------------
+    //
+    // They assume CHS events, so we do not run it fir the full and
+    // for the CHS we scale chg=PU particles back up
+    // ----------------------------------------------------------------------
     
-    // apply PUPPI
-    puppiContainer curEvent(hard_event, pileup_event);
-    vector<PseudoJet> puppi_event = curEvent.puppiFetch(mixer.npu());
-    
-    // cluster it
-    ClusterSequence cs_puppi(puppi_event,jet_def);
-          
-    // get all jets in full event
-    vector<PseudoJet> puppi_jets = sorted_by_pt(cs_puppi.inclusive_jets());
-    if ( iev <= maxprintout ) { cerr << "Puppi event" << endl; }
-    for (unsigned int i=0; i < 4U && i < puppi_jets.size(); i++) {
-      if ( iev <= maxprintout ) { cerr << "  jet " << i << ": "  << puppi_jets[i] << endl; }
-    }
-    
-    // set up the set of full/subtracted jets from which to match
-    matching.set_full_jets(puppi_jets);
-    
-    // run over the hard jets
-    for (unsigned int i=0; i < hard_jets.size(); i++) {
-      // for each hard jet, find the corresponding full/subtracted jet that matches
-      // (if any)
-      const PseudoJet * match = matching.match(hard_jets[i]);
-      if (match){
-        output.matteos["pt_puppi"].add_entry(hard_jets[i].pt(), match->pt());
-        output.matteos["m_puppi"].add_entry(hard_jets[i].m(), match->m());
-      } else {
-        output.matteos["pt_puppi"].add_entry();
-        output.matteos["m_puppi"].add_entry();
+    if (is_chs){
+      // rescale up chg-PU
+      vector<PseudoJet> rescaled_pileup_event;
+      for (unsigned int i=0; i<pileup_event.size(); i++){
+        double scale = SelectorCharged().pass(pileup_event[i]) ? 1.0/mixer.chs_rescaling_factor() : 1.0;
+        rescaled_pileup_event.push_back(scale * pileup_event[i]);
       }
-    }
-     
-    // keep track of number of jets above 20 GeV within the jet rapidity window
-    unsigned int njets_puppi = ( SelectorPtMin(20.0) && SelectorAbsRapMax(jet_rapmax) ).count(puppi_jets);
-    output.matteos["pt_puppi"].njets += njets_puppi;
-    output.matteos["m_puppi"].njets += njets_puppi;
+
+      // apply PUPPI
+      puppiContainer curEvent(hard_event, pileup_event);
+      vector<PseudoJet> puppi_event = curEvent.puppiFetch(mixer.npu());
+
+      // // check if there is any chg-PU particle coming out
+      // cout << "#PUPPI event size = " << puppi_event.size();
+      // cout << "#PUPPI Chg-PU count = " << (SelectorCharged()*(!SelectorHard())).count(puppi_event);
+      // cout << "#PUPPI PU size = " << (!SelectorHard()).count(puppi_event);
+
+      // cluster it
+      ClusterSequence cs_puppi(puppi_event,jet_def);
+          
+      // get all jets in full event
+      vector<PseudoJet> puppi_jets = sorted_by_pt(cs_puppi.inclusive_jets());
+      record("puppi", hard_jets, puppi_jets, matching, output, jet_rapmax, iev <= maxprintout);
+    }      
 
     // output from time to time
     if (iev % iev_periodic == 0){
