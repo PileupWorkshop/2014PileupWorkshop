@@ -11,6 +11,7 @@
 #include "fastjet/tools/Subtractor.hh"
 #include "fastjet/contrib/SafeSubtractor.hh"
 #include "fastjet/contrib/SoftKiller.hh"
+#include "fastjet/contrib/ConstituentSubtractor.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
@@ -26,6 +27,7 @@ struct JetInfo {
   float ptclean;
   float pttrim;
   float pttrimsafe;
+  float ptconst;
   float eta;
   float phi;
   float m;
@@ -33,6 +35,7 @@ struct JetInfo {
   float mclean;
   float mtrim;  
   float mtrimsafe;
+  float mconst;
 };
 void getConstitsForCleansing(vector<PseudoJet> inputs, vector<PseudoJet> &oNeutrals, vector<PseudoJet> &oChargedLV, vector<PseudoJet> &oChargedPU){
     for (unsigned int i = 0; i < inputs.size(); i++){
@@ -63,40 +66,51 @@ void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, G
   contrib::SafeAreaSubtractor *area_subtractor = 0; 
   if(!iCHS) area_subtractor = new contrib::SafeAreaSubtractor(&bge_rho, &bge_rhom);
   if( iCHS) area_subtractor = new contrib::SafeAreaSubtractor(&bge_rho, &bge_rhom,SelectorIsCharged(),SelectorVertexNumber(0 ));
-
   //iGMBE->set_particles(iParticles);
   PseudoJet lCorr =  (*area_subtractor)(iJet);
-
   fastjet::Filter trimmer( fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm, 0.3), fastjet::SelectorPtFractionMin(0.05)));
   PseudoJet lTrim     = (trimmer)(iJet);
   trimmer.set_subtractor(area_subtractor);
   PseudoJet lTrimSafe = (trimmer)(iJet);
+  
+  JetMedianBackgroundEstimator bge_rhoC(rho_range,jet_def_for_rho, area_def);
+  BackgroundJetScalarPtDensity *scalarPtDensity = new BackgroundJetScalarPtDensity();
+  bge_rhoC.set_jet_density_class(scalarPtDensity); 
+  bge_rhoC.set_particles(iParticles);
+  contrib::ConstituentSubtractor subtractor(&bge_rhoC);
+  subtractor.use_common_bge_for_rho_and_rhom(true);
+  PseudoJet lConstit = subtractor(iJet);
+
   iJetI.pt          = lCorr     .pt();  
   iJetI.ptraw       = iJet      .pt();
   iJetI.ptclean     = lClean    .pt();
   iJetI.pttrim      = lTrim     .pt();
-  iJetI.pttrimsafe  = lTrimSafe.pt();
-  iJetI.eta         = iJet     .eta();
-  iJetI.phi         = iJet     .phi();
-  iJetI.mraw        = iJet     .m();  
-  iJetI.m           = lCorr    .m();  
-  iJetI.mclean      = lClean   .m();  
-  iJetI.mtrim       = lTrim    .m();
-  iJetI.mtrimsafe   = lTrimSafe.m();
+  iJetI.pttrimsafe  = lTrimSafe .pt();
+  iJetI.ptconst     = lConstit  .pt();
+  iJetI.eta         = iJet      .eta();
+  iJetI.phi         = iJet      .phi();
+  iJetI.mraw        = iJet      .m();  
+  iJetI.m           = lCorr     .m();  
+  iJetI.mclean      = lClean    .m();  
+  iJetI.mtrim       = lTrim     .m();
+  iJetI.mtrimsafe   = lTrimSafe .m();
+  iJetI.mconst      = lConstit  .m();
 }
 void setupTree(TTree *iTree,JetInfo &iJet,std::string iName) { 
-  iTree->Branch((iName+"pt"        ).c_str(),&iJet.pt     ,(iName+"pt/F"   ).c_str());
-  iTree->Branch((iName+"ptraw"     ).c_str(),&iJet.ptraw  ,(iName+"ptraw/F").c_str());
-  iTree->Branch((iName+"ptclean"   ).c_str(),&iJet.ptclean,(iName+"ptclean/F").c_str());
-  iTree->Branch((iName+"pttrim"    ).c_str(),&iJet.pttrim ,(iName+"pttrim/F").c_str());
-  iTree->Branch((iName+"pttrimsafe").c_str(),&iJet.pttrim ,(iName+"pttrim/F").c_str());
-  iTree->Branch((iName+"eta"       ).c_str(),&iJet.eta    ,(iName+"eta/F"   ).c_str());
-  iTree->Branch((iName+"phi"       ).c_str(),&iJet.phi    ,(iName+"phi/F"   ).c_str());
-  iTree->Branch((iName+"m"         ).c_str(),&iJet.m      ,(iName+"m/F"     ).c_str());
-  iTree->Branch((iName+"mraw"      ).c_str(),&iJet.mraw   ,(iName+"mraw/F"  ).c_str());
-  iTree->Branch((iName+"mtrim"     ).c_str(),&iJet.mtrim  ,(iName+"mtrim/F" ).c_str());
-  iTree->Branch((iName+"mtrimsafe" ).c_str(),&iJet.mtrim  ,(iName+"mtrim/F" ).c_str());
-  iTree->Branch((iName+"mclean"    ).c_str(),&iJet.mclean ,(iName+"mclean/F").c_str());
+  iTree->Branch((iName+"pt"        ).c_str(),&iJet.pt        ,(iName+"pt/F"        ).c_str());
+  iTree->Branch((iName+"ptraw"     ).c_str(),&iJet.ptraw     ,(iName+"ptraw/F"     ).c_str());
+  iTree->Branch((iName+"ptclean"   ).c_str(),&iJet.ptclean,   (iName+"ptclean/F"   ).c_str());
+  iTree->Branch((iName+"pttrim"    ).c_str(),&iJet.pttrim    ,(iName+"pttrim/F"    ).c_str());
+  iTree->Branch((iName+"pttrimsafe").c_str(),&iJet.pttrimsafe,(iName+"pttrimsafe/F").c_str());
+  iTree->Branch((iName+"ptconst"   ).c_str(),&iJet.ptconst   ,(iName+"ptconst/F"   ).c_str());
+  iTree->Branch((iName+"eta"       ).c_str(),&iJet.eta       ,(iName+"eta/F"       ).c_str());
+  iTree->Branch((iName+"phi"       ).c_str(),&iJet.phi       ,(iName+"phi/F"       ).c_str());
+  iTree->Branch((iName+"m"         ).c_str(),&iJet.m         ,(iName+"m/F"         ).c_str());
+  iTree->Branch((iName+"mraw"      ).c_str(),&iJet.mraw      ,(iName+"mraw/F"      ).c_str());
+  iTree->Branch((iName+"mtrim"     ).c_str(),&iJet.mtrim     ,(iName+"mtrim/F"     ).c_str());
+  iTree->Branch((iName+"mtrimsafe" ).c_str(),&iJet.mtrimsafe ,(iName+"mtrimsafe/F" ).c_str());
+  iTree->Branch((iName+"mclean"    ).c_str(),&iJet.mclean    ,(iName+"mclean/F"    ).c_str());
+  iTree->Branch((iName+"mconst"    ).c_str(),&iJet.mconst    ,(iName+"mconst/F"    ).c_str());
 }
 //vector<PseudoJet> threeHardest(vector<PseudoJet> &iParts, JetDefinition &iJetDef, Selector &iSelector,std::vector<ClusterSequence> &iCSs) { 
   // cluster full event (hard + pileup)
@@ -115,16 +129,19 @@ PseudoJet match(PseudoJet &iJet,vector<PseudoJet> &iJets) {
   return PseudoJet();
 }
 void clear(JetInfo &iJet) { 
-  iJet.pt      = -1;
-  iJet.ptraw   = -1;
-  iJet.ptclean = -1;
-  iJet.pttrim  = -1;
-  iJet.eta     = -1;
-  iJet.phi     = -1;
-  iJet.m       = -1;
-  iJet.mraw    = -1;
-  iJet.mclean  = -1;
-  iJet.mtrim   = -1;
+  iJet.pt         = -1;
+  iJet.ptraw      = -1;
+  iJet.ptclean    = -1;
+  iJet.pttrim     = -1;
+  iJet.pttrimsafe = -1;
+  iJet.eta        = -1;
+  iJet.phi        = -1;
+  iJet.m          = -1;
+  iJet.mraw       = -1;
+  iJet.mtrim      = -1;
+  iJet.mtrimsafe  = -1;
+  iJet.mclean     = -1;
+  iJet.mconst     = -1; 
 }
 int main (int argc, char ** argv) {
   CmdLine cmdline(argc,argv);

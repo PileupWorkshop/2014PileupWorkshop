@@ -11,7 +11,7 @@ using namespace fastjet;
 //FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
 puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<PseudoJet> pileup_event, bool iDiscretize){
-    
+    _allParticles.resize(0);
     _pfParticles.resize(0);
     _genParticles.resize(0);
     _pfchsParticles.resize(0);
@@ -23,7 +23,7 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
     _chargedPU.resize(0);
     _neutrals.resize(0);
     _isPU.resize(0);
-    
+    fRandom = new TRandom(0xDEADBEEF);
     // loop over hard_event
     for (unsigned int i = 0; i < hard_event.size(); i++){
         
@@ -35,22 +35,27 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
 
         if (charge_tmp != 0) curParticle.set_user_index(2);
         else curParticle.set_user_index(0);
-
         
         if (charge_tmp != 0) _chargedLV.push_back(curParticle);
         else _neutrals.push_back(curParticle);
-        
-        _genParticles.push_back(curParticle);
-        _pfParticles.push_back(curParticle);
-        _pfchsParticles.push_back(curParticle);
 
-        _pfParticles_PU14.push_back(hard_event[i]);
-        _pfchsParticles_PU14.push_back(hard_event[i]);
-        
-        _isPU.push_back( 0 );
-        
+	_genParticles.push_back(curParticle);
+	_allParticles       .push_back(curParticle);
+	if(charge_tmp != 0) { 
+	  _isPU.push_back( 0 );
+	  _pfParticles        .push_back(curParticle);
+	  _pfchsParticles     .push_back(curParticle);
+	  _pfParticles_PU14   .push_back(hard_event[i]);
+	  _pfchsParticles_PU14.push_back(hard_event[i]);
+	  continue;
+	}
+	if (charge_tmp == 0 && iDiscretize)  continue;
+        _pfParticles.push_back        (curParticle);
+	_pfchsParticles.push_back     (curParticle);
+	_pfParticles_PU14.push_back   (hard_event[i]);
+	_pfchsParticles_PU14.push_back(hard_event[i]);
+	_isPU.push_back( 0 );
     }
-
     // loop over pileup_event
     for (unsigned int i = 0; i < pileup_event.size(); i++){
 
@@ -62,23 +67,26 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
         
         if (charge_tmp != 0) curParticle.set_user_index(3);
         else curParticle.set_user_index(1);
-        
-        _pfParticles.push_back(curParticle);
-        _pfParticles_PU14.push_back(pileup_event[i]);
-        
-        if (charge_tmp == 0){
-            _pfchsParticles.push_back(curParticle);
-            _pfchsParticles_PU14.push_back(pileup_event[i]);
-        }
-        
+
         if (charge_tmp != 0) _chargedPU.push_back(curParticle);
         else _neutrals.push_back(curParticle);
-    
-        _isPU.push_back( 1 );
-    }
-    
-}
 
+	_allParticles       .push_back(curParticle);
+	if(charge_tmp  != 0) {
+	  _pfParticles        .push_back(curParticle);
+	  _pfParticles_PU14   .push_back(pileup_event[i]);
+	  continue;
+	}
+        if (charge_tmp == 0 && iDiscretize)  continue;
+	_pfParticles        .push_back(curParticle);
+	_pfchsParticles     .push_back(curParticle);
+	_pfParticles_PU14   .push_back(pileup_event[i]);
+	_pfchsParticles_PU14.push_back(pileup_event[i]);
+	_isPU.push_back( 1 );
+    }
+    if(iDiscretize) discretize(_pfParticles        ,_pfParticles_PU14   ,_allParticles,-1);
+    if(iDiscretize) discretize(_pfchsParticles     ,_pfchsParticles_PU14,_allParticles,-1);
+}
 puppiContainer::~puppiContainer(){}
 
 std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuant){
@@ -122,7 +130,7 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
         PseudoJet curjet( pWeight*_pfParticles[i0].px(), pWeight*_pfParticles[i0].py(), pWeight*_pfParticles[i0].pz(), pWeight*_pfParticles[i0].e());
         //curjet.set_user_index(_pfParticles[i0].user_index());
 	int pdgid   = _pfParticles_PU14[i0].user_info<PU14>().pdg_id();
-	int barcode = i0;
+	int barcode = particles.size();
 	int vtx     = _pfParticles_PU14[i0].user_info<PU14>().vertex_number();
 	curjet.set_user_info(new PU14(pdgid,barcode,vtx));
         particles.push_back(curjet);
@@ -254,11 +262,107 @@ double puppiContainer::pt_within_R(const vector<PseudoJet> & particles, const Ps
     return(answer);
 }
 std::vector<fastjet::PseudoJet> puppiContainer::pfchsFetch(double iPtCut){
-  if(iPtCut < 0) return _pfchsParticles;
+  if(iPtCut < 0) return _pfchsParticles_PU14;
   std::vector<PseudoJet> lParts;
-  for(unsigned int i0 = 0; i0 < _pfchsParticles.size(); i0++) { 
-    if(_pfchsParticles[i0].user_index() < 2 && _pfchsParticles[i0].pt() < iPtCut) continue;
-    lParts.push_back(_pfchsParticles[i0]);
+  for(unsigned int i0 = 0; i0 < _pfchsParticles_PU14.size(); i0++) { 
+    int charge_tmp = _pfchsParticles_PU14[i0].user_info<PU14>().charge();
+    if(charge_tmp && _pfchsParticles_PU14[i0].pt() < iPtCut) continue;
+    lParts.push_back(_pfchsParticles_PU14[i0]);
   }
   return lParts;
+}
+
+void puppiContainer::discretize(std::vector<fastjet::PseudoJet> &discreteParticles,std::vector<fastjet::PseudoJet> &discreteParticlesPU14,std::vector<fastjet::PseudoJet> &iParticles,double iPtCut) {
+  bool lGrid = false;
+  //Discretize in 0.1x0.1
+  TH2F* h2d      = new TH2F( "h2d"     ,";#eta;#phi;e (GeV)",100, -5,5,63,0,2*TMath::Pi() ); //100 63
+  TH2F* h2dPU    = new TH2F( "h2dPU"   ,";#eta;#phi;e (GeV)",100, -5,5,63,0,2*TMath::Pi() ); //100 63
+  TH2F* h2dCh    = new TH2F( "h2dCh"   ,";#eta;#phi;e (GeV)",100, -5,5,63,0,2*TMath::Pi() ); //100 63
+  std::vector<PseudoJet> lParts; 
+  std::vector<PseudoJet> lPartsPU; 
+  std::vector<PseudoJet> lPartsCH; 
+  std::vector<PseudoJet> lPartsPUCH; 
+  for(int i0   = 0; i0 < h2d->GetNbinsX()+1; i0++) { 
+    for(int i1 = 0; i1 < h2d->GetNbinsY()+1; i1++) { 
+      PseudoJet pPart(0,0,0,0);
+      PseudoJet pPartPU(0,0,0,0);
+      PseudoJet pPartCH(0,0,0,0);
+      PseudoJet pPartPUCH(0,0,0,0);
+      lParts.push_back    (pPart);
+      lPartsPU.push_back  (pPartPU);
+      lPartsCH.push_back  (pPartCH);
+      lPartsPUCH.push_back(pPartPUCH);
+    }
+  }
+  for (unsigned int i0 = 0; i0 < iParticles.size(); i0++){
+    if (fabs(iParticles[i0].eta()) > 5  ) continue;        
+    int curBin = h2d->FindBin(iParticles[i0].eta(),iParticles[i0].phi());
+    if (lGrid  && iParticles[i0].user_index() == 0) h2d     ->SetBinContent( curBin, h2d     ->GetBinContent(curBin) + iParticles[i0].e() );        
+    if (lGrid  && iParticles[i0].user_index() == 1) h2dPU   ->SetBinContent( curBin, h2dPU   ->GetBinContent(curBin) + iParticles[i0].e() );        
+    if (!lGrid && iParticles[i0].user_index() == 0) lParts    [curBin] += iParticles[i0];
+    if (!lGrid && iParticles[i0].user_index() == 1) lPartsPU  [curBin] += iParticles[i0];
+    if (!lGrid && iParticles[i0].user_index() == 2) lPartsCH  [curBin] += iParticles[i0];
+    if (!lGrid && iParticles[i0].user_index() == 3) lPartsPUCH[curBin] += iParticles[i0];
+  }
+  //For now sumit up
+  if(!lGrid) { 
+    for(unsigned int i0   = 0; i0 < lParts.size(); i0++) { 
+      PseudoJet pPart,pPartPU14;
+      if(lParts  [i0].pt() > 0) pPart       += lParts  [i0]; 
+      if(lPartsPU[i0].pt() > 0) pPart       += lPartsPU[i0];
+      double pEt    = lParts  [i0].pt() + lPartsCH  [i0].pt();
+      pEt          += lPartsPU[i0].pt() + lPartsPUCH[i0].pt();
+      //pEt           = smear(pEt);
+      pEt          -= lPartsCH  [i0].pt();
+      pEt          -= lPartsPUCH[i0].pt();
+      if(pEt < TMath::Min(2.,0.2*(lPartsCH[i0].pt()))) continue; //PF Like cut
+      if(pEt < 0.1) continue;
+      pPart    .reset_PtYPhiM(pEt,pPart.eta(),pPart.phi(),pPart.m());
+      pPartPU14.reset_PtYPhiM(pEt,pPart.eta(),pPart.phi(),pPart.m());
+      int lVtx = (lParts[i0].pt() < lPartsPU[i0].pt() );
+      pPart    .set_user_index(lVtx);
+      pPartPU14.set_user_info(new PU14(22,i0+5000,lVtx));
+      if(pPart.pt() < 0.1   ) continue; 
+      if(pPart.pt() < iPtCut) continue; 
+      discreteParticles    .push_back(pPart);
+      discreteParticlesPU14.push_back(pPartPU14);
+    }
+  }
+  if(lGrid) { 
+    for(int i0   = 0; i0 < h2d->GetNbinsX()+1; i0++) { 
+      for(int i1 = 0; i1 < h2d->GetNbinsY()+1; i1++) { 
+	double pEta   = h2d->GetXaxis()->GetBinCenter(i0);
+	double pPhi   = h2d->GetYaxis()->GetBinCenter(i1);
+	double pPt    = fabs(h2d  ->GetBinContent(i0,i1)*sin(atan(exp(-pEta))*2.));
+	double pPtPU  = fabs(h2dPU->GetBinContent(i0,i1)*sin(atan(exp(-pEta))*2.));
+	double pPtCh  = fabs(h2dCh->GetBinContent(i0,i1)*sin(atan(exp(-pEta))*2.));
+	double pEt    = pPt + pPtPU + pPtCh;
+	//pEt = smear(pEt);
+	pEt -= pPtCh;
+	PseudoJet pPart,pPartPU14;
+	int barcode = discreteParticles.size();
+	pPart    .reset_PtYPhiM(pPt+pPtPU,pEta,pPhi);
+	pPartPU14.reset_PtYPhiM(pPt+pPtPU,pEta,pPhi);
+	int lVtx = (pPt < pPtPU);
+	pPart     .set_user_index(lVtx);
+	pPartPU14.set_user_info(new PU14(22,barcode,lVtx));
+	if(pPart.pt() > 0.2) discreteParticles    .push_back(pPart);
+	if(pPart.pt() > 0.2) discreteParticlesPU14.push_back(pPartPU14);
+      }
+    }
+  }
+  delete h2d;
+  delete h2dPU;
+  delete h2dCh;
+}
+double puppiContainer::smear(double iEt) { 
+  double lScale = 1.0;
+  if(iEt == 0) return iEt;
+  //CMS resolutions because ATLAS sucks
+  double lERes = 0.028/sqrt(iEt) + 0.12/iEt + 0.003;
+  double lHRes = 1.   /sqrt(iEt) + 0.3/iEt;
+  //Take some reasonble E/H ratio
+  lERes *= iEt*0.4*lScale;
+  lHRes *= iEt*0.6*lScale;
+  return (fRandom->Gaus(iEt*0.4,lERes)+  fRandom->Gaus(iEt*0.6,lHRes));
 }
