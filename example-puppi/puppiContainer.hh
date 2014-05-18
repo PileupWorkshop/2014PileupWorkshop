@@ -12,7 +12,7 @@ class puppiContainer{
 
 public:
     // default ctor
-    puppiContainer( std::vector<PseudoJet> hard_event, std::vector<PseudoJet> pileup_event, bool iDiscretize=true);
+    puppiContainer( std::vector<PseudoJet> hard_event, std::vector<PseudoJet> pileup_event, bool iDiscretize=false);
     ~puppiContainer();
     
     std::vector<fastjet::PseudoJet> puppiFetch(int nPU, double iQuant=0.5);
