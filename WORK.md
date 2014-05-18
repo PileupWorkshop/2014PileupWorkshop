@@ -85,8 +85,8 @@ Use the following file format for each subtractor/observable/sample (write out
 the "+-" to output):
 
      # comments  
-     # npu    jet_ptmin  <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV   matching_efficiency
-       xxx    xxx        xxx +- yyy   xxx +- yyy      xxx             xxx +- yyy         xxx +- yyy
+     # npu    jet_ptmin  <DeltaO>     sigma_DeltaO    corr.coeff.     #_of_jets>20_GeV   matching_efficiency    <O_hard>           obs & method names 
+       xxx    xxx        xxx +- yyy   xxx +- yyy      xxx             xxx +- yyy         xxx +- yyy             xxx +- yyy       #  e.g. pt_areasub
 
 Template code
 -------------

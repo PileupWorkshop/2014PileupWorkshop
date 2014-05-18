@@ -82,7 +82,7 @@ int main (int argc, char ** argv) {
   Selector sel_particles = SelectorAbsRapMax(particle_rapmax);
   cout << "# sel_particles: " << sel_particles.description() << endl;
 
-  AverageAndError npu, njets, offset, matching_efficiency, pass_fraction;
+  AverageAndError npu, njets, offset, matching_efficiency, pass_fraction, hard_pt;
   CorrelationCoefficient subhardcorr;
   ProfileHist offset_v_rapidity(-jet_rapmax,jet_rapmax,0.50);
 
@@ -168,6 +168,9 @@ int main (int argc, char ** argv) {
      
      // run over the hard jets
      for (unsigned int i=0; i < hard_jets.size(); i++) {
+       // record info about the average hard pt
+       hard_pt += hard_jets[i].pt();
+
        // for each hard jet, find the corresponding full/subtracted jet that matches
        // (if any)
        const PseudoJet * match = matching.match(hard_jets[i]);
@@ -191,7 +194,7 @@ int main (int argc, char ** argv) {
 
   // output quality measures as a function of <npu>
   cout << "# fraction of events passing the basic jet cuts = " << pass_fraction.average() << " +- " << pass_fraction.error() << endl;
-  cout << "# npu    jet_ptmin     <DeltaO>           sigma_DeltaO     corr.coeff.     njets>20GeV        match_eff " << endl;     
+  cout << "# npu    jet_ptmin     <DeltaO>         sigma_DeltaO   corr.coeff.     njets>20GeV           match_eff       <O_hard>           name " << endl;     
   cout << setprecision(4) 
        << setw(4) << npu.average()    << "    "
        << setw(6) << jet_ptmin << "    "
@@ -199,7 +202,9 @@ int main (int argc, char ** argv) {
        << setw(6) << offset.sd()      << " +- " << setw(6) << offset.error_on_sd() << "   "
        << setw(6) << subhardcorr.r()  << "    "
        << setw(6) << njets.average() << " +- " << setw(6) << njets.error() << "    "
-       << setw(6) << matching_efficiency.average() << " +- " << setw(6) << matching_efficiency.error()
+       << setw(6) << matching_efficiency.average() << " +- " << setw(6) << matching_efficiency.error() << "    "
+       << setw(6) << hard_pt.average() << " +- " << setw(6) << hard_pt.error()
+       << "    # pt_areasub " // a label to say what the observable and tool were
        << endl;
 
   // output histograms
