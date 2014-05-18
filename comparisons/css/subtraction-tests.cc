@@ -11,7 +11,18 @@
 //   - add area+trimming
 //   - add angularity
 //   - plot efficiencies
-// 
+//
+// Detector sim implemented in puppi:
+//  call discretize with
+//   - list of charged
+//   - list of charged (neutrals will be added)
+//   - list of
+//   - ptcut on ntr (now:-1; CMS:0.5)
+// What it does is 
+//   - put all the particles on a grid
+//   - smear
+//   - subtracts the charged (set to 0 if -ve)
+//   - apply the optional ptcu 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "EventMixer.hh"
@@ -608,9 +619,8 @@ int main (int argc, char ** argv) {
   //......................................................................
   // PUPPI --- copied on 2014-05-17, 18:53.
   //   git rev-list --count HEAD
-  //   105
+  //   158
   // Modified in 2 ways:
-  //  - commented out the 'cout << "pass..."' lines
   //  - output PJ are done as weight * particle instead of (weight*px,
   //    weight*py,...) in order to preserve the UserInfo
   if (included_subs.find(string(",puppi,"))!=string::npos){
@@ -637,7 +647,7 @@ int main (int argc, char ** argv) {
     SelectorIsHard().sift(full_event, hard_event, pileup_event); 
 
     // cluster hard event only (Note: area may not be needed here)                                      
-    ClusterSequenceArea cs_hard(hard_event,jet_def,area_def);
+    ClusterSequence cs_hard(hard_event,jet_def);
     // cluster full event (hard + pileup)
     ClusterSequenceArea cs_full(full_event,jet_def,area_def);
           
