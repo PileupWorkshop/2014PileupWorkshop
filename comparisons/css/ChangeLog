@@ -1,0 +1,5 @@
+2014-05-18  Gregory Soyez  <soyez@fastjet.fr>
+
+	* subtraction-tests.cc:
+	switched default Rsub to 0.3 (still ftrim=0 by default)
+	added safeareasub + trimming
