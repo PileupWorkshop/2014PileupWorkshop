@@ -4,6 +4,12 @@
 //
 // We include the following methods:
 //
+// TODO:
+//   - add hisrograms of the observable
+//   - add histograms of the delta obs
+//   - add angularity
+//   - plot efficiencies
+// 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "EventMixer.hh"
@@ -236,6 +242,16 @@ protected:
 
 //----------------------------------------------------------------------
 // record what has been going on
+void declare_output(OutputInfo &output, const string &tag, const double jetptmin){
+  output.hists["hist_delta_pt_"+tag].declare(-jetptmin, jetptmin, 200);
+  output.hists["hist_delta_m_" +tag].declare(-0.25*jetptmin, 0.25*jetptmin, 200);
+
+  output.hists["hist_pt_"+tag].declare(0.0, 3*jetptmin, 300);
+  output.hists["hist_m_" +tag].declare(0.0, 0.5*jetptmin, 200);
+}
+
+//----------------------------------------------------------------------
+// record what has been going on
 void record(const string &name,
             const vector<PseudoJet> &hard_jets, 
             const vector<PseudoJet> &subt_jets,
@@ -263,6 +279,12 @@ void record(const string &name,
     if (match){
       output.matteos["pt_"+name].add_entry(hard_jets[i].pt(), match->pt());
       output.matteos["m_" +name].add_entry(hard_jets[i].m(),  match->m());
+
+      output.hists["hist_delta_pt_"+name].add_entry(match->pt() - hard_jets[i].pt());
+      output.hists["hist_delta_m_" +name].add_entry(match->m()  - hard_jets[i].m() );
+      
+      output.hists["hist_pt_"+name].add_entry(match->pt());
+      output.hists["hist_m_" +name].add_entry(match->m() );
     } else {
       output.matteos["pt_"+name].add_entry();
       output.matteos["m_" +name].add_entry();
@@ -335,6 +357,8 @@ int main (int argc, char ** argv) {
   AverageAndError npu;
   //ProfileHist offset_v_rapidity(-jet_rapmax,jet_rapmax,0.50);
 
+  output.hists["hist_pt_hard"].declare(0.0,   3*jet_ptmin, 300);
+  output.hists["hist_m_hard" ].declare(0.0, 0.5*jet_ptmin, 200);
 
   //----------------------------------------------------------------------
   // declare all the jet-based methods we want to try
@@ -346,6 +370,7 @@ int main (int argc, char ** argv) {
   // unsubtracted
   if (included_subs.find(string(",unsub,"))!=string::npos){
     transformers.push_back(TransformerWithName(new IdentityTransformer(), "unsubtracted"));
+    declare_output(output, "unsubtracted", jet_ptmin);
   }
 
   //......................................................................
@@ -371,6 +396,8 @@ int main (int argc, char ** argv) {
     cout << "# Parameters for area subtraction" << endl;
     cout << "#   rapidity rescaling for rho = " << rescale << endl;
     cout << "#   grid size for GMBGE        = " << grid_size << endl;
+
+    declare_output(output, "areasub", jet_ptmin);
   }
 
   //......................................................................
@@ -388,6 +415,8 @@ int main (int argc, char ** argv) {
     cout << "# Parameters for safe area subtraction" << endl;
     cout << "#   rapidity rescaling for rho = " << rescale << endl;
     cout << "#   grid size for GMBGE        = " << grid_size << endl;
+
+    declare_output(output, "safeareasub", jet_ptmin);
   }
 
   //......................................................................
@@ -406,6 +435,8 @@ int main (int argc, char ** argv) {
       cout << "# Parameters for neutral-proportional-to-charged (CHS-only)" << endl;
       cout << "#   gamma0 = " << gamma0 
            << "  [rescaled to " << gamma_with_resc << "]" << endl;
+
+      declare_output(output, "safenpcsub", jet_ptmin);
     }
   }
   
@@ -427,6 +458,8 @@ int main (int argc, char ** argv) {
     cout << "#   grid size for GMBGE        = " << grid_size << endl;
     cout << "#   alpha                      = " << csub_alpha << endl;
     cout << "#   maxDeltaR                  = " << csub_maxDR << endl;
+
+    declare_output(output, "constitsub", jet_ptmin);
   }
 
   //......................................................................
@@ -452,6 +485,8 @@ int main (int argc, char ** argv) {
       cout << "#   gamma0      = " << gamma0 << endl;
       cout << "#   Rsub        = " << cleansing_Rsub  << endl;
       cout << "#   ftrim       = " << cleansing_ftrim << endl;
+
+      declare_output(output, "linear_cleansing", jet_ptmin);
     }
   }
 
@@ -496,6 +531,9 @@ int main (int argc, char ** argv) {
   contrib::SoftKiller soft_killer(particle_rapmax, sk_gridsize, sel_soft_killer);
   output.header << "#   description     = " << soft_killer.description();
 
+  if (included_subs.find(string(",killer,"))!=string::npos){
+    declare_output(output, "soft_killer", jet_ptmin);
+  }
   
 
   //......................................................................
@@ -506,6 +544,9 @@ int main (int argc, char ** argv) {
   //  - commented out the 'cout << "pass..."' lines
   //  - output PJ are done as weight * particle instead of (weight*px,
   //    weight*py,...) in order to preserve the UserInfo
+  if (included_subs.find(string(",puppi,"))!=string::npos){
+    declare_output(output, "puppi", jet_ptmin);
+  }
 
   // make sure there are no unused command-line arguments
   cmdline.assert_all_options_used();
@@ -543,7 +584,10 @@ int main (int argc, char ** argv) {
     if ( iev <= maxprintout ) { cerr << "Hard event" << endl; }
     for (unsigned int i=0; i < hard_jets.size(); i++) {
       if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
+      output.hists["hist_pt_hard"].add_entry(hard_jets[i].pt());
+      output.hists["hist_m_hard" ].add_entry(hard_jets[i].m());
     }
+
      
 
     // generic needs for subtraction
