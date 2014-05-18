@@ -72,7 +72,10 @@ if __name__ == '__main__':
     
     file = ROOT.TFile("Output.root");
     tree = file.Get("Tree");
-
+    
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
     # define the histograms
     hists_name = []; hists_vars = []; hists_comp = []; hists_pars = []; hists_axis = []; hists_type = [];
     h_name = "pts";
@@ -98,16 +101,15 @@ if __name__ == '__main__':
     h_axis = "; mass - massHS (GeV); N";
     h_type = 1;
     hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
     
     # make the histograms
     hists = [];
     for b in range(len(hists_vars)):
         tmphists = [];
         for i in range(len(hists_vars[b])):
-            print b,i
-            print hists_name[b]
-            print hists_axis[b]
-            print hists_vars[b][i]
             tmphists.append( ROOT.TH1F(hists_name[b]+"_"+hists_vars[b][i],hists_axis[b],hists_pars[b][0],hists_pars[b][1],hists_pars[b][2]) );
         hists.append(tmphists);
 
