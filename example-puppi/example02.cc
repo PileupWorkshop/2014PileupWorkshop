@@ -162,8 +162,10 @@ int main (int argc, char ** argv) {
  
   // loop over events
   int iev = 0;
-  TFile *lFile = new TFile("Output.root","RECREATE");
-  TTree *lTree = new TTree("Tree","ATLAS Sucks");
+    char fname[192];
+    sprintf(fname,"output_%i_%0.2f.root",mixer.npu(),R);
+    TFile *lFile = new TFile(fname,"RECREATE");
+  TTree *lTree = new TTree("Tree","Tree");
   int lIndex = 0; lTree->Branch("index",&lIndex,"lIndex/F");
   JetInfo JGen;     setupTree(lTree,JGen    ,"Gen"  );
   JetInfo JPF;      setupTree(lTree,JPF     ,"PF"   );

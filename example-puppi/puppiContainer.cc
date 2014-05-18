@@ -121,8 +121,8 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     float wptCutF = 1.0;
     
     //a functional form, hard-coded for now
-    wptCutC = 0.66667e-2*( (float) iPU ) + 0.1;
-    wptCutF = 1.05e-2*( (float) iPU ) + 0.2;
+    wptCutC = 0.66667e-2*( (float) iPU ) + 0.6;
+    wptCutF = 1.05e-2*( (float) iPU ) + 0.7;
 
     for(int i0 = 0; i0 < lNEvents; i0++) {
         double pWeight = 1;
