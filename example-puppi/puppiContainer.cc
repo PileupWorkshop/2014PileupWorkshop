@@ -33,11 +33,16 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
         curParticle.set_user_index(-99);
         int charge_tmp = hard_event[i].user_info<PU14>().charge();
 
+
         if (charge_tmp != 0) curParticle.set_user_index(2);
         else curParticle.set_user_index(0);
-        
-        if (charge_tmp != 0) _chargedLV.push_back(curParticle);
+
+	if (charge_tmp != 0) hard_event[i].set_user_index(2);
+	else hard_event[i].set_user_index(0);
+
+	if (charge_tmp != 0) _chargedLV.push_back(curParticle);
         else _neutrals.push_back(curParticle);
+
 
 	_genParticles.push_back(curParticle);
 	_allParticles       .push_back(curParticle);
@@ -68,9 +73,11 @@ puppiContainer::puppiContainer(std::vector<PseudoJet> hard_event, std::vector<Ps
         if (charge_tmp != 0) curParticle.set_user_index(3);
         else curParticle.set_user_index(1);
 
+	if (charge_tmp != 0) pileup_event[i].set_user_index(3);
+	else pileup_event[i].set_user_index(1);
+
         if (charge_tmp != 0) _chargedPU.push_back(curParticle);
         else _neutrals.push_back(curParticle);
-
 	_allParticles       .push_back(curParticle);
 	if(charge_tmp  != 0) {
 	  _pfParticles        .push_back(curParticle);
