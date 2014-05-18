@@ -5,8 +5,10 @@
 // We include the following methods:
 //
 // TODO:
-//   - add hisrograms of the observable
-//   - add histograms of the delta obs
+//   - add hisrograms of the observable #DONE but not tested
+//   - add histograms of the delta obs  #DONE but not tested
+//   - switch cleansing to Rsub=0.2
+//   - add area+trimming
 //   - add angularity
 //   - plot efficiencies
 // 
@@ -23,6 +25,8 @@
 
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/GridMedianBackgroundEstimator.hh"
+
+#include "fastjet/tools/Filter.hh"
 
 #include "fastjet/contrib/SafeSubtractor.hh"
 #include "fastjet/contrib/ConstituentSubtractor.hh"
@@ -419,6 +423,37 @@ int main (int argc, char ** argv) {
     declare_output(output, "safeareasub", jet_ptmin);
   }
 
+  // NOTHING TO BE INSERTED HERE (we're assuming areasub+trimming follows areasub)
+
+  double Rsub  = cmdline.value("-Rsub",  0.2);
+  double ftrim = cmdline.value("-ftrim", 0.0);
+  
+  //......................................................................
+  // safe area subtraction + trimming (automatically included from safearea
+  if (included_subs.find(string(",safearea,"))!=string::npos){
+    // get the subtractor from the last addition
+    Transformer *safeareasub = transformers.back().base();
+    assert(dynamic_cast<contrib::SafeAreaSubtractor*>(safeareasub) != 0);
+
+    Filter *trimmer = new Filter(JetDefinition(kt_algorithm, Rsub), SelectorPtFractionMin(ftrim));
+    trimmer->set_subtractor(safeareasub);
+    transformers.push_back(TransformerWithName(trimmer, "trimmed_safeareasub"));
+
+    output.header << "# Parameters for safe area subtraction + trimming" << endl;
+    output.header << "#   Rsub   = " << Rsub  << endl;
+    output.header << "#   ftrim  = " << ftrim << endl;
+    output.header << "#   others = cf. safe ares suntraction" << endl;
+    output.header << "#   Note: unsubtracted jet given as reference" << endl;
+    output.header << "#   description                = " << transformers.back().description() << endl;
+    cout << "# Parameters for safe area subtraction + trimming" << endl;
+    cout << "#   Rsub   = " << Rsub  << endl;
+    cout << "#   ftrim  = " << ftrim << endl;
+    cout << "#   others = cf. safe ares suntraction" << endl;
+    cout << "#   Note: unsubtracted jet given as reference" << endl;
+
+    declare_output(output, "trimmed_safeareasub", jet_ptmin);
+  }
+
   //......................................................................
   // NpC (CHS-only)
   double gamma0 = cmdline.value<double>("-gamma0", 0.612);
@@ -464,27 +499,25 @@ int main (int argc, char ** argv) {
 
   //......................................................................
   // Cleansing (CHS-only)
-  double cleansing_Rsub  = cmdline.value("-cln:Rsub",  0.3);
-  double cleansing_ftrim = cmdline.value("-cln:ftrim", 0.0);
   if (included_subs.find(string(",cleansing,"))!=string::npos){
     if (is_chs){
-      transformers.push_back(TransformerWithName(new TJetCleanser(cleansing_Rsub,
+      transformers.push_back(TransformerWithName(new TJetCleanser(Rsub,
                                                                   contrib::JetCleanser::linear_cleansing, 
                                                                   contrib::JetCleanser::input_nc_separate, 
-                                                                  cleansing_ftrim, 
+                                                                  ftrim, 
                                                                   gamma0, 0, 0, 0,
                                                                   1.0/mixer.chs_rescaling_factor()),
                                                  "linear_cleansing"));
       output.header << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
       output.header << "#   gamma0 = " << gamma0 << endl;
-      output.header << "#   Rsub   = " << cleansing_Rsub  << endl;
-      output.header << "#   ftrim  = " << cleansing_ftrim << endl;
+      output.header << "#   Rsub   = " << Rsub  << endl;
+      output.header << "#   ftrim  = " << ftrim << endl;
       // disabled cleansing description output because it covers multiple lines
       //output.header << "#   description = " << transformers.back().description() << endl;
       cout << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
       cout << "#   gamma0      = " << gamma0 << endl;
-      cout << "#   Rsub        = " << cleansing_Rsub  << endl;
-      cout << "#   ftrim       = " << cleansing_ftrim << endl;
+      cout << "#   Rsub        = " << Rsub  << endl;
+      cout << "#   ftrim       = " << ftrim << endl;
 
       declare_output(output, "linear_cleansing", jet_ptmin);
     }
