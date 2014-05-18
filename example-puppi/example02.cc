@@ -231,7 +231,7 @@ int main (int argc, char ** argv) {
       PseudoJet softJet    = match(genJets[i0],softJets);
       PseudoJet softCHSJet = match(genJets[i0],softCHSJets);
       setJet(genJets[i0],JGen    ,hard_event   ,gmbge,sub,false);
-      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub,true);
+      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub,false);
       if(chsJet.pt()     != 0) setJet(chsJet,     JCHS    ,chs_event    ,gmbge,sub,true);
       if(chs2GeVJet.pt() != 0) setJet(chs2GeVJet, JCHS2GeV,chs_event2GeV,gmbge,sub,true);
       if(puppiJet.pt()   != 0) setJet(puppiJet  , JPup    ,puppi_event  ,gmbge,sub,true);
