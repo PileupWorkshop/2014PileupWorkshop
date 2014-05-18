@@ -14,14 +14,15 @@ ROOT.gROOT.ProcessLine(".L ~/tdrstyle.C");
 ROOT.setTDRStyle();
 ROOT.gStyle.SetPadTopMargin(0.09);
 ROOT.gStyle.SetPadLeftMargin(0.16);
-ROOT.gStyle.SetPadRightMargin(0.16);
+#ROOT.gStyle.SetPadRightMargin(0.16);
 ROOT.gStyle.SetPalette(1);
 ROOT.gStyle.SetErrorX(0.5);
 
-def makeCanvas(hists, names, canname, isLog=False):
+def makeCanvas(hists, names, canname, type=1, isLog=False):
     
     directory = "plots";
-    colors = [2,4,1,6,7];
+    colors  = [1,4,2,6,7,3,5];
+    markers = [20,24,21,25,22,26,23];
     
     max = -999.;
     for hist in hists:
@@ -32,58 +33,99 @@ def makeCanvas(hists, names, canname, isLog=False):
     leg.SetFillStyle(0);
     for i in range(len(names)):
         hists[i].SetLineColor(colors[i]);
-        leg.AddEntry(hists[i], names[i], "l");
-    
+        hists[i].SetMarkerColor(colors[i]);
+        hists[i].SetMarkerStyle(markers[i]);
+        hists[i].SetLineWidth(2);
+        leg.AddEntry(hists[i], names[i], "flp");
+    if type == 0:
+        hists[0].SetFillStyle(3003);
+        hists[0].SetFillColor(colors[0]);
+
+    banner = ROOT.TLatex(0.18,0.92,("Dawg Pound Working Group, dijets"));
+    banner.SetNDC()
+    banner.SetTextSize(0.035)
+
     can = ROOT.TCanvas("can"+canname,"can"+canname,1000,800);
     hists[0].SetMaximum( 1.2*max );
     hists[0].SetMinimum( 0 );
     hists[0].Draw();
     for i in range(1,len(hists)):
-        hists[i].Draw("sames");
+        if type == 0: hists[i].Draw("histsames");
+        elif type == 1: hists[i].Draw("sames");
+        else: print "problem!"
+
     leg.Draw();
     if isLog:
         ROOT.gPad.SetLogy();
         hists[0].SetMinimum( 1 );
+    banner.Draw();
     can.SaveAs(directory+"/"+canname+".eps");
     can.SaveAs(directory+"/"+canname+".png");
-    
-    
-    for hist in hists:
-        hist.Scale(1./hist.Integral());
+
+
+
+############ --------------------------------------------------------
+############ --------------------------------------------------------
+############ --------------------------------------------------------
 
 if __name__ == '__main__':
     
-    file = ROOT.TFile("example01.root");
-    tree = file.Get("Events");
+    file = ROOT.TFile("Output.root");
+    tree = file.Get("Tree");
 
-    h_GEN_pt = ROOT.TH1F("h_GEN_pt",";pT (GeV);N",50,0,500);
-    h_GEN_ma = ROOT.TH1F("h_GEN_ma",";mass (GeV);N",50,0,200);
-    h_PFCHS_pt = ROOT.TH1F("h_PFCHS_pt",";pT (GeV);N",50,0,500);
-    h_PFCHS_ma = ROOT.TH1F("h_PFCHS_ma",";mass (GeV);N",50,0,200);
-    h_PUPPI_pt = ROOT.TH1F("h_PUPPI_pt",";pT (GeV);N",50,0,500);
-    h_PUPPI_ma = ROOT.TH1F("h_PUPPI_ma",";mass (GeV);N",50,0,200);
-    h_PF_pt = ROOT.TH1F("h_PF_pt",";pT (GeV);N",50,0,500);
-    h_PF_ma = ROOT.TH1F("h_PF_ma",";mass (GeV);N",50,0,200);
+    # define the histograms
+    hists_name = []; hists_vars = []; hists_comp = []; hists_pars = []; hists_axis = []; hists_type = [];
+    h_name = "pts";
+    h_vars = ["Genpt","Puppiptraw","PFpt","CHSpt"];
+    h_comp = None;
+    h_pars = [20,0,300];
+    h_axis = "; pT (GeV); N";
+    h_type = 0;
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    
+    h_name = "mass";
+    h_vars = ["Genm","Puppimraw","PFm","CHSm"];
+    h_comp = None;
+    h_pars = [20,0,100];
+    h_axis = "; mass (GeV); N";
+    h_type = 0;
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    
+    h_name = "massRes";
+    h_vars = ["Puppimraw","PFm","CHSm"];
+    h_comp = "Genm";
+    h_pars = [20,-100,100];
+    h_axis = "; mass - massHS (GeV); N";
+    h_type = 1;
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    
+    # make the histograms
+    hists = [];
+    for b in range(len(hists_vars)):
+        tmphists = [];
+        for i in range(len(hists_vars[b])):
+            print b,i
+            print hists_name[b]
+            print hists_axis[b]
+            print hists_vars[b][i]
+            tmphists.append( ROOT.TH1F(hists_name[b]+"_"+hists_vars[b][i],hists_axis[b],hists_pars[b][0],hists_pars[b][1],hists_pars[b][2]) );
+        hists.append(tmphists);
 
-    for i in range(tree.GetEntriesFast()):
+    # fill the histograms
+    for a in range(tree.GetEntriesFast()):
         
-        tree.GetEntry(i);
+        tree.GetEntry(a);
+        
+        if not tree.index == 0: continue;
+        
+        for b in range(len(hists)):
+            for i in range(len(hists[b])):
+                if hists_comp[b] == None: hists[b][i].Fill( getattr(tree,hists_vars[b][i]) );
+                else: hists[b][i].Fill( getattr(tree,hists_vars[b][i]) -  getattr(tree,hists_comp[b]) );
 
-        h_GEN_pt.Fill(tree.Jet_GEN_pt[0]);
-        h_GEN_ma.Fill(tree.Jet_GEN_ma[0]);
-
-        h_PF_pt.Fill(tree.Jet_PF_pt[0]);
-        h_PF_ma.Fill(tree.Jet_PF_ma[0]);
-
-        h_PFCHS_pt.Fill(tree.Jet_PFCHS_pt[0]);
-        h_PFCHS_ma.Fill(tree.Jet_PFCHS_ma[0]);
-
-        h_PUPPI_pt.Fill(tree.Jet_PUPPI_pt[0]);
-        h_PUPPI_ma.Fill(tree.Jet_PUPPI_ma[0]);
-
-    names = ["Hard","PF","PFCHS","PUPPI"];
-    makeCanvas( [h_GEN_pt,h_PF_pt,h_PFCHS_pt,h_PUPPI_pt], names, "pts" )
-    makeCanvas( [h_GEN_ma,h_PF_ma,h_PFCHS_ma,h_PUPPI_ma], names, "mass" )
+    # plot the histograms
+    for b in range(len(hists)):
+        makeCanvas( hists[b], hists_vars[b], hists_name[b], hists_type[b] );
 
 
 
