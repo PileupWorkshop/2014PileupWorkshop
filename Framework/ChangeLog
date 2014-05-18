@@ -1,3 +1,8 @@
+2014-05-18  Matteo Cacciari <cacciari@lpthe.jussieu.fr>
+
+        * AverageAndError.hh
+        fixed mistake in calculation of error on standard deviation
+
 2014-05-17  Gavin Salam  <gavin.salam@cern.ch>
 
 	* Matching.hh: 
