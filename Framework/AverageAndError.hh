@@ -87,8 +87,8 @@ public:
   /// return error on variance (i.e. the square root of variance_of_variance() )
   inline double error_on_variance() const  { return (_n > 1) ? std::sqrt(variance_of_variance()) : 0.; }
 
-  /// return error on standard deviation (i.e. the square root of error_on_variance() )
-  inline double error_on_sd() const  { return (_n > 1) ? std::sqrt(error_on_variance()) : 0.; }
+  /// return error on standard deviation, given in approximate form as error of sqrt of variance
+  inline double error_on_sd() const  { return (_n > 1) ? error_on_variance()/sd()/2. : 0.; }
   
 double _sum, _sum2, _sum3, _sum4;
 int _n;
