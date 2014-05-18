@@ -22,6 +22,7 @@
 #include "SimpleHist.hh"
 #include "ProfileHist.hh"
 #include "Matching.hh"
+#include "helpers.hh"
 
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/GridMedianBackgroundEstimator.hh"
@@ -29,6 +30,7 @@
 #include "fastjet/tools/Filter.hh"
 
 #include "fastjet/contrib/SafeSubtractor.hh"
+#include "fastjet/contrib/GenericSubtractor.hh"
 #include "fastjet/contrib/ConstituentSubtractor.hh"
 #include "fastjet/contrib/JetCleanser.hh"
 #include "fastjet/contrib/VertexJets.hh"
@@ -44,6 +46,8 @@
 
 using namespace std;
 using namespace fastjet;
+
+bool do_width;
 
 /// a specific class that handles Matteo's format
 ///
@@ -245,13 +249,15 @@ protected:
 };
 
 //----------------------------------------------------------------------
-// record what has been going on
+// declare histograms (they depend on boundaries so have to be declared)
 void declare_output(OutputInfo &output, const string &tag, const double jetptmin){
-  output.hists["hist_delta_pt_"+tag].declare(-jetptmin, jetptmin, 200);
-  output.hists["hist_delta_m_" +tag].declare(-0.25*jetptmin, 0.25*jetptmin, 200);
+  output.hists["hist_delta_pt_"   +tag].declare(-jetptmin, jetptmin, 200);
+  output.hists["hist_delta_m_"    +tag].declare(-0.25*jetptmin, 0.25*jetptmin, 200);
+  output.hists["hist_delta_width_"+tag].declare(-0.2, 0.2, 200.0);
 
-  output.hists["hist_pt_"+tag].declare(0.0, 3*jetptmin, 300);
-  output.hists["hist_m_" +tag].declare(0.0, 0.5*jetptmin, 200);
+  output.hists["hist_pt_"   +tag].declare(0.0, 3*jetptmin, 300);
+  output.hists["hist_m_"    +tag].declare(0.0, 0.5*jetptmin, 200);
+  output.hists["hist_width_"+tag].declare(0.0, 0.4, 200.0);
 }
 
 //----------------------------------------------------------------------
@@ -262,6 +268,7 @@ void record(const string &name,
             Matching &matching,
             OutputInfo &output,
             double jet_rapmax,
+            const contrib::GenericSubtractor &gen_sub,
             bool print){
 
   // write out jets in subtracted event
@@ -289,16 +296,33 @@ void record(const string &name,
       
       output.hists["hist_pt_"+name].add_entry(match->pt());
       output.hists["hist_m_" +name].add_entry(match->m() );
+
+      // handle angularity
+      // 
+      // This has to be done differently for areasub and safeareasub, in
+      // which case we have to use a generic subtractor
+      if (do_width){
+        Width width;
+        double width_hard = width(hard_jets[i]);
+        double width_subt = ((name == "areasub") || (name == "safeareasub") || (name == "trimmed_safeareasub"))
+          ? max(gen_sub(width, *match), 0.0)
+          : width(*match);
+      
+        output.matteos["width_"+name].add_entry(width_hard, width_subt);
+        output.hists["hist_width_"+name].add_entry(width_subt);
+        output.hists["hist_delta_width_"+name].add_entry(width_subt - width_hard);
+      }
     } else {
       output.matteos["pt_"+name].add_entry();
       output.matteos["m_" +name].add_entry();
-    }
+    }    
   }
   
   // keep track of number of jets above 20 GeV within the jet rapidity window
   unsigned int njets = ( SelectorPtMin(20.0) && SelectorAbsRapMax(jet_rapmax) ).count(subt_jets);
   output.matteos["pt_"+name].njets += njets;
   output.matteos["m_"+name].njets += njets;
+  output.matteos["width_"+name].njets += njets;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -334,6 +358,9 @@ int main (int argc, char ** argv) {
   output.header << "# time now = " << cmdline.time_stamp() << endl;
   output.header << "# Mixer: "  << mixer.description() << endl;
 
+  do_width = cmdline.present("-width");
+  output.header << "# do_width: " << do_width << endl;
+
   // matching condition
   double maxdeltaR = cmdline.value<double>("-maxdeltaR",0.3);
   Matching matching(maxdeltaR);
@@ -361,8 +388,10 @@ int main (int argc, char ** argv) {
   AverageAndError npu;
   //ProfileHist offset_v_rapidity(-jet_rapmax,jet_rapmax,0.50);
 
-  output.hists["hist_pt_hard"].declare(0.0,   3*jet_ptmin, 300);
-  output.hists["hist_m_hard" ].declare(0.0, 0.5*jet_ptmin, 200);
+  output.hists["hist_pt_hard"   ].declare(0.0,   3*jet_ptmin, 300);
+  output.hists["hist_m_hard"    ].declare(0.0, 0.5*jet_ptmin, 200);
+  if (do_width)
+    output.hists["hist_width_hard"].declare(0.0, 0.4, 200);
 
   //----------------------------------------------------------------------
   // declare all the jet-based methods we want to try
@@ -389,6 +418,10 @@ int main (int argc, char ** argv) {
   // and should therefore also be aproproate for 14 TeV
   FunctionOfPseudoJet<double> * rescaling = new BackgroundRescalingYPolynomial(1.1685397, 0, -0.0246807, 0, 5.94119e-05);
   if ( rescale) { gmbge -> set_rescaling_class(rescaling); }
+
+  // declare a generic subtractor for shapes using areasub
+  contrib::GenericSubtractor gen_sub(gmbge);
+  output.header << "# GenericSubtractor: " << gen_sub.description() << endl;
 
   if (included_subs.find(string(",area,"))!=string::npos){
     transformers.push_back(TransformerWithName(new Subtractor(gmbge), "areasub"));
@@ -619,8 +652,9 @@ int main (int argc, char ** argv) {
       if ( iev <= maxprintout ) { cerr << "  jet " << i << ": " << hard_jets[i] << endl; }
       output.hists["hist_pt_hard"].add_entry(hard_jets[i].pt());
       output.hists["hist_m_hard" ].add_entry(hard_jets[i].m());
+      if (do_width)
+        output.hists["hist_width_hard"].add_entry(Width()(hard_jets[i]));
     }
-
      
 
     // generic needs for subtraction
@@ -639,7 +673,7 @@ int main (int argc, char ** argv) {
       
       // subtract
       vector<PseudoJet> subtracted_jets = sub(full_jets); 
-      record(sub.name(), hard_jets, subtracted_jets, matching, output, jet_rapmax, iev <= maxprintout);
+      record(sub.name(), hard_jets, subtracted_jets, matching, output, jet_rapmax, gen_sub, iev <= maxprintout);
     }
 
     //----------------------------------------------------------------------
@@ -655,7 +689,7 @@ int main (int argc, char ** argv) {
       
       // get all jets in full event
       vector<PseudoJet> sk_jets = sorted_by_pt(cs_sk.inclusive_jets());
-      record("soft_killer", hard_jets, sk_jets, matching, output, jet_rapmax, iev <= maxprintout);
+      record("soft_killer", hard_jets, sk_jets, matching, output, jet_rapmax, gen_sub, iev <= maxprintout);
     }
 
     //----------------------------------------------------------------------
@@ -691,7 +725,7 @@ int main (int argc, char ** argv) {
           
       // get all jets in full event
       vector<PseudoJet> puppi_jets = sorted_by_pt(cs_puppi.inclusive_jets());
-      record("puppi", hard_jets, puppi_jets, matching, output, jet_rapmax, iev <= maxprintout);
+      record("puppi", hard_jets, puppi_jets, matching, output, jet_rapmax, gen_sub, iev <= maxprintout);
     }      
 
     // output from time to time
