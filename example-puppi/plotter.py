@@ -21,14 +21,14 @@ ROOT.gStyle.SetErrorX(0.5);
 def makeCanvas(hists, names, canname, type=1, isLog=False):
     
     directory = "plots";
-    colors  = [1,4,2,6,7,3,5];
+    colors  = [1,4,2,6,7,3,5,8,9,10];
     markers = [20,24,21,25,22,26,23];
     
     max = -999.;
     for hist in hists:
         if max < hist.GetMaximum(): max = hist.GetMaximum();
     
-    leg = ROOT.TLegend(0.7,0.7,0.9,0.9);
+    leg = ROOT.TLegend(0.7,0.45,0.9,0.85);
     leg.SetBorderSize(0);
     leg.SetFillStyle(0);
     for i in range(len(names)):
@@ -41,7 +41,7 @@ def makeCanvas(hists, names, canname, type=1, isLog=False):
         hists[0].SetFillStyle(3003);
         hists[0].SetFillColor(colors[0]);
 
-    banner = ROOT.TLatex(0.18,0.92,("Dawg Pound Working Group, dijets"));
+    banner = ROOT.TLatex(0.18,0.92,("DAWG, dijets"));
     banner.SetNDC()
     banner.SetTextSize(0.035)
 
@@ -72,42 +72,57 @@ if __name__ == '__main__':
     
     file = ROOT.TFile("Output.root");
     tree = file.Get("Tree");
-
+    
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
     # define the histograms
-    hists_name = []; hists_vars = []; hists_comp = []; hists_pars = []; hists_axis = []; hists_type = [];
+    hists_name = []; hists_vars = []; hists_comp = []; hists_pars = []; hists_axis = []; hists_type = []; hists_labl = [];
     h_name = "pts";
-    h_vars = ["Genpt","Puppiptraw","PFpt","CHSpt"];
+    h_vars = ["Genpt","Puppiptraw","PFpt","CHSpt","PFptclean","SKCHSpt","CHSptconst"];
     h_comp = None;
     h_pars = [20,0,300];
     h_axis = "; pT (GeV); N";
     h_type = 0;
-    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    h_labl = ["Gen","Puppi","PF area sub","CHS area sub","PFcleanse","SoftKillerCHS","CHS const sub"];
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type); hists_labl.append(h_labl);
     
     h_name = "mass";
-    h_vars = ["Genm","Puppimraw","PFm","CHSm"];
+    h_vars = ["Genm","Puppimraw","PFm","CHSm","PFmclean","SKCHSm","CHSmconst"];
     h_comp = None;
     h_pars = [20,0,100];
     h_axis = "; mass (GeV); N";
     h_type = 0;
-    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    h_labl = ["Gen","Puppi","PF area sub","CHS area sub","PFcleanse","SoftKillerCHS","CHS const sub"];
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type); hists_labl.append(h_labl);
     
-    h_name = "massRes";
-    h_vars = ["Puppimraw","PFm","CHSm"];
-    h_comp = "Genm";
-    h_pars = [20,-100,100];
+    h_name = "ptRes";
+    h_vars = ["Puppiptraw","PFpt","CHSpt","PFptclean","SKCHSpt","CHSptconst"];
+    h_comp = "Genpt";
+    h_pars = [20,-50,50];
     h_axis = "; mass - massHS (GeV); N";
     h_type = 1;
-    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type);
+    h_labl = ["Puppi","PF area sub","CHS area sub","PFcleanse","SoftKillerCHS","CHS const sub"];
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type); hists_labl.append(h_labl);
+
+
+    h_name = "massRes";
+    h_vars = ["Puppimraw","PFm","CHSm","PFmclean","SKCHSm","CHSmconst"];
+    h_comp = "Genm";
+    h_pars = [20,-50,50];
+    h_axis = "; mass - massHS (GeV); N";
+    h_type = 1;
+    h_labl = ["Puppi","PF area sub","CHS area sub","PFcleanse","SoftKillerCHS","CHS const sub"];
+    hists_name.append(h_name); hists_vars.append(h_vars); hists_comp.append(h_comp); hists_pars.append(h_pars); hists_axis.append(h_axis); hists_type.append(h_type); hists_labl.append(h_labl);
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------------------------------------
     
     # make the histograms
     hists = [];
     for b in range(len(hists_vars)):
         tmphists = [];
         for i in range(len(hists_vars[b])):
-            print b,i
-            print hists_name[b]
-            print hists_axis[b]
-            print hists_vars[b][i]
             tmphists.append( ROOT.TH1F(hists_name[b]+"_"+hists_vars[b][i],hists_axis[b],hists_pars[b][0],hists_pars[b][1],hists_pars[b][2]) );
         hists.append(tmphists);
 
@@ -125,7 +140,7 @@ if __name__ == '__main__':
 
     # plot the histograms
     for b in range(len(hists)):
-        makeCanvas( hists[b], hists_vars[b], hists_name[b], hists_type[b] );
+        makeCanvas( hists[b], hists_labl[b], hists_name[b], hists_type[b] );
 
 
 

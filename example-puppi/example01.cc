@@ -126,13 +126,9 @@ int main (int argc, char ** argv) {
         
         puppiContainer curEvent(hard_event, pileup_event);
         vector<PseudoJet> puppiParticles = curEvent.puppiFetch(20);
-        cout << "puppiParticles.size() = " << puppiParticles.size() << endl;
-        cout << "pfchsParticles.size() = " << curEvent.pfchsFetch().size() << endl;
-        cout << "pfParticles.size() = " << curEvent.pfFetch().size() << endl;
-        cout << "genParticles.size() = " << curEvent.genFetch().size() << endl;
         
         ClusterSequence cs_pf(curEvent.pfFetch(),jet_def);
-        ClusterSequence cs_pfchs(curEvent.pfchsFetch(),jet_def);
+        ClusterSequence cs_pfchs(curEvent.pfchsFetch(-1),jet_def);
         ClusterSequence cs_puppi(puppiParticles,jet_def);
         ClusterSequence cs_gen(curEvent.genFetch(),jet_def);
 
