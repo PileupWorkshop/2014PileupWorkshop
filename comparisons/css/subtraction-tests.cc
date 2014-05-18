@@ -35,8 +35,6 @@
 using namespace std;
 using namespace fastjet;
 
-bool puppi;
-
 /// a specific class that handles Matteo's format
 ///
 /// Usage: 
@@ -298,7 +296,9 @@ int main (int argc, char ** argv) {
   double jet_ptmin  = cmdline.value<double>("-jet-ptmin",20);
   double R = cmdline.value<double>("-R",0.4);
 
-  puppi = ! cmdline.present("-nopuppi");
+  string included_subs = cmdline.value<string>("-methods", "unsub,area,safearea,safenpc,cleansing,constit,puppi,killer");
+  included_subs.insert(0,1,',');
+  included_subs.push_back(',');
 
   // some containier for what we want to output
   OutputInfo output(cmdline.value<string>("-out"), mixer.npu(), jet_ptmin);
@@ -344,18 +344,14 @@ int main (int argc, char ** argv) {
 
   //......................................................................
   // unsubtracted
-  transformers.push_back(TransformerWithName(new IdentityTransformer(), "unsubtracted"));
+  if (included_subs.find(string(",unsub,"))!=string::npos){
+    transformers.push_back(TransformerWithName(new IdentityTransformer(), "unsubtracted"));
+  }
 
   //......................................................................
   // default FJ subtraction
   bool rescale = ! cmdline.present("-norescale");
   double grid_size = cmdline.value<double>("-gridsize", 0.55);
-  output.header << "# Parameters for area subtraction" << endl;
-  output.header << "#   rapidity rescaling for rho = " << rescale << endl;
-  output.header << "#   grid size for GMBGE        = " << grid_size << endl;
-  cout << "# Parameters for area subtraction" << endl;
-  cout << "#   rapidity rescaling for rho = " << rescale << endl;
-  cout << "#   grid size for GMBGE        = " << grid_size << endl;
   
   // define background estimator (grid type, does not need to recluster)
   GridMedianBackgroundEstimator * gmbge = new GridMedianBackgroundEstimator(particle_rapmax, grid_size);
@@ -365,79 +361,99 @@ int main (int argc, char ** argv) {
   FunctionOfPseudoJet<double> * rescaling = new BackgroundRescalingYPolynomial(1.1685397, 0, -0.0246807, 0, 5.94119e-05);
   if ( rescale) { gmbge -> set_rescaling_class(rescaling); }
 
-  transformers.push_back(TransformerWithName(new Subtractor(gmbge), "areasub"));
-  output.header << "#   description                = " << transformers.back().description() << endl;
+  if (included_subs.find(string(",area,"))!=string::npos){
+    transformers.push_back(TransformerWithName(new Subtractor(gmbge), "areasub"));
+
+    output.header << "# Parameters for area subtraction" << endl;
+    output.header << "#   rapidity rescaling for rho = " << rescale << endl;
+    output.header << "#   grid size for GMBGE        = " << grid_size << endl;
+    output.header << "#   description                = " << transformers.back().description() << endl;
+    cout << "# Parameters for area subtraction" << endl;
+    cout << "#   rapidity rescaling for rho = " << rescale << endl;
+    cout << "#   grid size for GMBGE        = " << grid_size << endl;
+  }
 
   //......................................................................
   // safe area subtraction  
-  output.header << "# Parameters for safe area subtraction" << endl;
-  output.header << "#   rapidity rescaling for rho = " << rescale << endl;
-  output.header << "#   grid size for GMBGE        = " << grid_size << endl;
-  cout << "# Parameters for safe area subtraction" << endl;
-  cout << "#   rapidity rescaling for rho = " << rescale << endl;
-  cout << "#   grid size for GMBGE        = " << grid_size << endl;
-  if (is_chs){
-    transformers.push_back(TransformerWithName(new contrib::SafeAreaSubtractor(gmbge, 0, SelectorCharged(), SelectorHard()), "safeareasub"));
-  } else {
-    transformers.push_back(TransformerWithName(new contrib::SafeAreaSubtractor(gmbge), "safeareasub"));
+  if (included_subs.find(string(",safearea,"))!=string::npos){
+    if (is_chs){
+      transformers.push_back(TransformerWithName(new contrib::SafeAreaSubtractor(gmbge, 0, SelectorCharged(), SelectorHard()), "safeareasub"));
+    } else {
+      transformers.push_back(TransformerWithName(new contrib::SafeAreaSubtractor(gmbge), "safeareasub"));
+    }
+    output.header << "# Parameters for safe area subtraction" << endl;
+    output.header << "#   rapidity rescaling for rho = " << rescale << endl;
+    output.header << "#   grid size for GMBGE        = " << grid_size << endl;
+    output.header << "#   description                = " << transformers.back().description() << endl;
+    cout << "# Parameters for safe area subtraction" << endl;
+    cout << "#   rapidity rescaling for rho = " << rescale << endl;
+    cout << "#   grid size for GMBGE        = " << grid_size << endl;
   }
-  output.header << "#   description                = " << transformers.back().description() << endl;
 
   //......................................................................
   // NpC (CHS-only)
   double gamma0 = cmdline.value<double>("-gamma0", 0.612);
   double gamma_with_resc = (gamma0/(1-gamma0)) * mixer.chs_rescaling_factor(); 
-  output.header << "# Parameters for neutral-proportional-to-charged (CHS-only)" << endl;
-  output.header << "#   gamma0      = " << gamma0 
-                << "  [rescaled to " << gamma_with_resc << "]" << endl;
-  cout << "# Parameters for neutral-proportional-to-charged (CHS-only)" << endl;
-  cout << "#   gamma0 = " << gamma0 
-       << "  [rescaled to " << gamma_with_resc << "]" << endl;
-  if (is_chs){
-    transformers.push_back(TransformerWithName(new contrib::SafeNpCSubtractor(gamma_with_resc, SelectorIsCharged(), SelectorHard()), "safenpcsub"));
-    output.header << "#   description = " << transformers.back().description() << endl;
+
+  if (included_subs.find(string(",safenpc,"))!=string::npos){
+    if (is_chs){
+      transformers.push_back(TransformerWithName(new contrib::SafeNpCSubtractor(gamma_with_resc, SelectorIsCharged(), SelectorHard()), "safenpcsub"));
+
+      output.header << "# Parameters for neutral-proportional-to-charged (CHS-only)" << endl;
+      output.header << "#   gamma0      = " << gamma0 
+                    << "  [rescaled to " << gamma_with_resc << "]" << endl;
+      output.header << "#   description = " << transformers.back().description() << endl;
+      cout << "# Parameters for neutral-proportional-to-charged (CHS-only)" << endl;
+      cout << "#   gamma0 = " << gamma0 
+           << "  [rescaled to " << gamma_with_resc << "]" << endl;
+    }
   }
   
   //......................................................................
   // Constituent subtractor
   double csub_alpha = cmdline.value("constit:alpha",  0.0);
   double csub_maxDR = cmdline.value("constit:maxDR", -1.0);
-  output.header << "# Parameters for the ConstituentSubtractor" << endl;
-  output.header << "#   rapidity rescaling for rho = " << rescale << endl;
-  output.header << "#   grid size for GMBGE        = " << grid_size << endl;
-  output.header << "#   alpha                      = " << csub_alpha << endl;
-  output.header << "#   maxDeltaR                  = " << csub_maxDR << endl;
-  cout << "# Parameters for the ConstituentSubtractor" << endl;
-  cout << "#   rapidity rescaling for rho = " << rescale << endl;
-  cout << "#   grid size for GMBGE        = " << grid_size << endl;
-  cout << "#   alpha                      = " << csub_alpha << endl;
-  cout << "#   maxDeltaR                  = " << csub_maxDR << endl;
-  transformers.push_back(TransformerWithName(new contrib::ConstituentSubtractor(gmbge, 0, csub_alpha, csub_maxDR), "constitsub"));
-  output.header << "#   description                = " << transformers.back().description() << endl;
+
+  if (included_subs.find(string(",constit,"))!=string::npos){
+    transformers.push_back(TransformerWithName(new contrib::ConstituentSubtractor(gmbge, 0, csub_alpha, csub_maxDR), "constitsub"));
+    output.header << "# Parameters for the ConstituentSubtractor" << endl;
+    output.header << "#   rapidity rescaling for rho = " << rescale << endl;
+    output.header << "#   grid size for GMBGE        = " << grid_size << endl;
+    output.header << "#   alpha                      = " << csub_alpha << endl;
+    output.header << "#   maxDeltaR                  = " << csub_maxDR << endl;
+    output.header << "#   description                = " << transformers.back().description() << endl;
+    cout << "# Parameters for the ConstituentSubtractor" << endl;
+    cout << "#   rapidity rescaling for rho = " << rescale << endl;
+    cout << "#   grid size for GMBGE        = " << grid_size << endl;
+    cout << "#   alpha                      = " << csub_alpha << endl;
+    cout << "#   maxDeltaR                  = " << csub_maxDR << endl;
+  }
 
   //......................................................................
   // Cleansing (CHS-only)
   double cleansing_Rsub  = cmdline.value("-cln:Rsub",  0.3);
   double cleansing_ftrim = cmdline.value("-cln:ftrim", 0.0);
-  if (is_chs){
-    transformers.push_back(TransformerWithName(new TJetCleanser(cleansing_Rsub,
-                                                                contrib::JetCleanser::linear_cleansing, 
-                                                                contrib::JetCleanser::input_nc_separate, 
-                                                                cleansing_ftrim, 
-                                                                gamma0, 0, 0, 0,
-                                                                1.0/mixer.chs_rescaling_factor()),
-                                               "linear_cleansing"));
-    output.header << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
-    output.header << "#   gamma0 = " << gamma0 << endl;
-    output.header << "#   Rsub   = " << cleansing_Rsub  << endl;
-    output.header << "#   ftrim  = " << cleansing_ftrim << endl;
-    cout << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
-    cout << "#   gamma0      = " << gamma0 << endl;
-    cout << "#   Rsub        = " << cleansing_Rsub  << endl;
-    cout << "#   ftrim       = " << cleansing_ftrim << endl;
+  if (included_subs.find(string(",cleansing,"))!=string::npos){
+    if (is_chs){
+      transformers.push_back(TransformerWithName(new TJetCleanser(cleansing_Rsub,
+                                                                  contrib::JetCleanser::linear_cleansing, 
+                                                                  contrib::JetCleanser::input_nc_separate, 
+                                                                  cleansing_ftrim, 
+                                                                  gamma0, 0, 0, 0,
+                                                                  1.0/mixer.chs_rescaling_factor()),
+                                                 "linear_cleansing"));
+      output.header << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
+      output.header << "#   gamma0 = " << gamma0 << endl;
+      output.header << "#   Rsub   = " << cleansing_Rsub  << endl;
+      output.header << "#   ftrim  = " << cleansing_ftrim << endl;
+      // disabled cleansing description output because it covers multiple lines
+      //output.header << "#   description = " << transformers.back().description() << endl;
+      cout << "# Parameters for linear cleansing [Linear mode, input = neutral and charged separate]" << endl;
+      cout << "#   gamma0      = " << gamma0 << endl;
+      cout << "#   Rsub        = " << cleansing_Rsub  << endl;
+      cout << "#   ftrim       = " << cleansing_ftrim << endl;
+    }
   }
-  // disabled cleansing description output because it covers multiple lines
-  //output.header << "#   description = " << transformers.back().description() << endl;
 
   // //......................................................................
   // // corrJVF: check with Pascal what to run (CHS-only)
@@ -486,6 +502,10 @@ int main (int argc, char ** argv) {
   // PUPPI --- copied on 2014-05-17, 18:53.
   //   git rev-list --count HEAD
   //   105
+  // Modified in 2 ways:
+  //  - commented out the 'cout << "pass..."' lines
+  //  - output PJ are done as weight * particle instead of (weight*px,
+  //    weight*py,...) in order to preserve the UserInfo
 
   // make sure there are no unused command-line arguments
   cmdline.assert_all_options_used();
@@ -549,15 +569,17 @@ int main (int argc, char ** argv) {
     // SoftKiller
     //----------------------------------------------------------------------
 
-    // apply the SoftKiller
-    vector<PseudoJet> sk_event = soft_killer(full_event);
-
-    // cluster it
-    ClusterSequence cs_sk(sk_event,jet_def);
-          
-    // get all jets in full event
-    vector<PseudoJet> sk_jets = sorted_by_pt(cs_sk.inclusive_jets());
-    record("soft_killer", hard_jets, sk_jets, matching, output, jet_rapmax, iev <= maxprintout);
+    if (included_subs.find(string(",killer,"))!=string::npos){
+      // apply the SoftKiller
+      vector<PseudoJet> sk_event = soft_killer(full_event);
+      
+      // cluster it
+      ClusterSequence cs_sk(sk_event,jet_def);
+      
+      // get all jets in full event
+      vector<PseudoJet> sk_jets = sorted_by_pt(cs_sk.inclusive_jets());
+      record("soft_killer", hard_jets, sk_jets, matching, output, jet_rapmax, iev <= maxprintout);
+    }
 
     //----------------------------------------------------------------------
     // PUPPI 
@@ -566,7 +588,7 @@ int main (int argc, char ** argv) {
     // for the CHS we scale chg=PU particles back up
     // ----------------------------------------------------------------------
     
-    if (puppi && is_chs){
+    if ((included_subs.find(string(",puppi,"))!=string::npos) && is_chs){
       // rescale up chg-PU
       vector<PseudoJet> rescaled_pileup_event;
       for (unsigned int i=0; i<pileup_event.size(); i++){
@@ -601,11 +623,6 @@ int main (int argc, char ** argv) {
        output.write(iev);
     }
   }  // end loop over events
-
-  //// output histograms
-  //cout << "\n\n# offset_v_rapidity" << endl;
-  //cout << "# binlo binmid binhi avg stddev err avgsquares" << endl;
-  //output_noNaN(offset_v_rapidity);
 
   output.write(iev);
 
