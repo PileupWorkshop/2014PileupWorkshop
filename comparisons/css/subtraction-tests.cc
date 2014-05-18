@@ -315,6 +315,8 @@ void record(const string &name,
     } else {
       output.matteos["pt_"+name].add_entry();
       output.matteos["m_" +name].add_entry();
+      if (do_width)
+        output.matteos["width_" +name].add_entry();
     }    
   }
   
@@ -322,7 +324,8 @@ void record(const string &name,
   unsigned int njets = ( SelectorPtMin(20.0) && SelectorAbsRapMax(jet_rapmax) ).count(subt_jets);
   output.matteos["pt_"+name].njets += njets;
   output.matteos["m_"+name].njets += njets;
-  output.matteos["width_"+name].njets += njets;
+  if (do_width)
+    output.matteos["width_"+name].njets += njets;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
