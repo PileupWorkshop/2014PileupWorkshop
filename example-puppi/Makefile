@@ -15,23 +15,24 @@ LIBRARIES  += `$(FJCONFIG) --libs --plugins`
 
 INCLUDE += `root-config --cflags`
 LIBRARIES  += `root-config --libs`
+LIBRARIES  += -lJetCleanser -lGenericSubtractor -lSoftKiller
 INCLUDE += $(LCLINCLUDE)
 
 COMMONSRC = puppiContainer.cc
 F77SRC = 
 COMMONOBJ = puppiContainer.o
 
-PROGSRC = example01.cc
-PROGOBJ = example01.o
+PROGSRC = example02.cc
+PROGOBJ = example02.o
 
 INCLUDE += -I../Framework
 LIBRARIES += -L../Framework -lEventMixer -lz
 
 
-all:  example01 
+all:  example02 
 
 
-example01: example01.o  $(COMMONOBJ)
+example02: example02.o  $(COMMONOBJ)
 	$(CXX) $(LDFLAGS) -o $@ $@.o $(COMMONOBJ) $(LIBRARIES)
 
 
@@ -42,7 +43,7 @@ clean:
 	rm -vf $(COMMONOBJ) $(PROGOBJ)
 
 realclean: clean
-	rm -vf  example01 
+	rm -vf  example02 
 
 .cc.o:         $<
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
@@ -61,4 +62,4 @@ depend:
 # DO NOT DELETE
 
 puppiContainer.o: puppiContainer.hh
-example01.o: puppiContainer.hh
+example02.o: puppiContainer.hh

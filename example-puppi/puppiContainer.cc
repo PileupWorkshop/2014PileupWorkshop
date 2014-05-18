@@ -89,9 +89,8 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     _vals.resize(0);
     
     double R0 = 0.3;
-    double R1 = 0.3;
+    //double R1 = 0.3;
     
-    cout << "pass1" << endl;
     // the chi2 2dof version
     getRMSAvg(13,_pfParticles,_chargedLV,_isPU,iQuant,0.5,R0);
     double lMed0=fMed;
@@ -110,7 +109,6 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
     wptCutC = 0.66667e-2*( (float) iPU ) + 0.1;
     wptCutF = 1.05e-2*( (float) iPU ) + 0.2;
 
-    cout << "pass3" << endl;
     for(int i0 = 0; i0 < lNEvents; i0++) {
         double pWeight = 1;
         
@@ -122,7 +120,11 @@ std::vector<fastjet::PseudoJet> puppiContainer::puppiFetch(int iPU, double iQuan
         if(pWeight < 0.1) continue;
         
         PseudoJet curjet( pWeight*_pfParticles[i0].px(), pWeight*_pfParticles[i0].py(), pWeight*_pfParticles[i0].pz(), pWeight*_pfParticles[i0].e());
-        curjet.set_user_index(_pfParticles[i0].user_index());
+        //curjet.set_user_index(_pfParticles[i0].user_index());
+	int pdgid   = _pfParticles_PU14[i0].user_info<PU14>().pdg_id();
+	int barcode = i0;
+	int vtx     = _pfParticles_PU14[i0].user_info<PU14>().vertex_number();
+	curjet.set_user_info(new PU14(pdgid,barcode,vtx));
         particles.push_back(curjet);
     }
     return particles;
@@ -250,4 +252,13 @@ double puppiContainer::pt_within_R(const vector<PseudoJet> & particles, const Ps
         answer += near_particles[i].pt();
     }
     return(answer);
+}
+std::vector<fastjet::PseudoJet> puppiContainer::pfchsFetch(double iPtCut){
+  if(iPtCut < 0) return _pfchsParticles;
+  std::vector<PseudoJet> lParts;
+  for(unsigned int i0 = 0; i0 < _pfchsParticles.size(); i0++) { 
+    if(_pfchsParticles[i0].user_index() < 2 && _pfchsParticles[i0].pt() < iPtCut) continue;
+    lParts.push_back(_pfchsParticles[i0]);
+  }
+  return lParts;
 }
