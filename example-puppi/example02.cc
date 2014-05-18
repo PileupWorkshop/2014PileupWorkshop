@@ -58,7 +58,7 @@ void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, G
   Selector rho_range =  SelectorAbsRapMax(4.0);
   ClusterSequenceArea clust_seq_rho(iParticles, jet_def_for_rho, area_def);
   // the two background estimators
-  JetMedianBackgroundEstimator bge_rho(rho_range, clust_seq_rho);
+  JetMedianBackgroundEstimator bge_rho (rho_range, clust_seq_rho);
   JetMedianBackgroundEstimator bge_rhom(rho_range, clust_seq_rho);
   BackgroundJetPtMDensity m_density; 
   bge_rhom.set_jet_density_class(&m_density);
@@ -68,7 +68,8 @@ void setJet(PseudoJet &iJet,JetInfo &iJetI,std::vector<PseudoJet> &iParticles, G
   if( iCHS) area_subtractor = new contrib::SafeAreaSubtractor(&bge_rho, &bge_rhom,SelectorIsCharged(),SelectorVertexNumber(0 ));
   //iGMBE->set_particles(iParticles);
   PseudoJet lCorr =  (*area_subtractor)(iJet);
-  fastjet::Filter trimmer( fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm, 0.3), fastjet::SelectorPtFractionMin(0.05)));
+  
+  fastjet::Filter trimmer( fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm, 0.2), fastjet::SelectorPtFractionMin(0.05)));
   PseudoJet lTrim     = (trimmer)(iJet);
   trimmer.set_subtractor(area_subtractor);
   PseudoJet lTrimSafe = (trimmer)(iJet);
@@ -231,7 +232,7 @@ int main (int argc, char ** argv) {
       PseudoJet softJet    = match(genJets[i0],softJets);
       PseudoJet softCHSJet = match(genJets[i0],softCHSJets);
       setJet(genJets[i0],JGen    ,hard_event   ,gmbge,sub,false);
-      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub,true);
+      if(pfJet.pt()      != 0) setJet(pfJet ,     JPF     ,pf_event     ,gmbge,sub,false);
       if(chsJet.pt()     != 0) setJet(chsJet,     JCHS    ,chs_event    ,gmbge,sub,true);
       if(chs2GeVJet.pt() != 0) setJet(chs2GeVJet, JCHS2GeV,chs_event2GeV,gmbge,sub,true);
       if(puppiJet.pt()   != 0) setJet(puppiJet  , JPup    ,puppi_event  ,gmbge,sub,true);
