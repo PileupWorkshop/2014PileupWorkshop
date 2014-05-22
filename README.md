@@ -1,8 +1,7 @@
 2014PileupWorkshop
 ==================
 
-This repository, currently under development, contains shared
-software for the [CERN Pileup
+This repository contains shared software for the [CERN Pileup
 Workshop](https://indico.cern.ch/event/306155/) in May 2014.
 
 
