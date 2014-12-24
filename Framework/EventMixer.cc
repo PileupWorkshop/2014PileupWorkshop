@@ -1,6 +1,7 @@
 #include "EventMixer.hh"
 #include "PU14.hh"
 #include "helpers.hh"
+#include <cstdlib>
 
 using namespace std;
 
@@ -9,8 +10,14 @@ EventMixer::EventMixer(CmdLine * cmdline) : _cmdline(cmdline) {
 
   _hard_name = _cmdline->value<string>("-hard");
   _pileup_name = _cmdline->value<string>("-pileup");
-  _npu = _cmdline->value("-npu", 20);
-
+  _upu = _cmdline->value("-upu", -1);
+  if (_upu < 0) {
+    // only allow the -npu option if _upu is not set
+    _npu = _cmdline->value("-npu", 20);
+  } else {
+    _npu = -1; // will be reset by event mixer
+  }
+  
   _massless = _cmdline->present("-massless");
 
   if (_cmdline->present("-chs")) {
@@ -32,6 +39,11 @@ bool EventMixer::next_event() {
 
   unsigned hard_size = _particles.size();
 
+  // allow for random 
+  if (_upu > 0) {
+    _npu = 1 + int(_upu*(1.0*rand()/RAND_MAX));
+    if (_npu > _upu) _npu = _upu; // for the case of equality with RAND_MAX
+  }
   for (int i = 1; i <= _npu; i++) {
     if (! _pileup->append_next_event(_particles,i)) return false;
   }
@@ -55,8 +67,14 @@ bool EventMixer::next_event() {
 //----------------------------------------------------------------------
 string EventMixer::description() const {
   ostringstream ostr;
-  ostr << "Event mixer using hard events from " << _hard_name 
-       << " and " << _npu << " pileup events from " << _pileup_name;
+  ostr << "Event mixer using hard events from " << _hard_name;
+
+  if (_upu < 0) {
+    ostr << " and " << _npu << " pileup events from " << _pileup_name;
+  } else {
+    ostr << " and 1..." << _upu << " pileup events from " << _pileup_name
+         << " (exact number chosen according to uniform random distribution)";
+  }
   if (chs_rescaling_factor() != 1.0) {
     ostr << " with CHS (rescaling charged PU by a factor "
          << chs_rescaling_factor() << ")";

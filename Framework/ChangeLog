@@ -1,3 +1,10 @@
+2014-12-24  Gavin Salam  <gavin.salam@cern.ch>
+
+	* EventMixer.cc|hh:
+	added -upu UUU option, which causes the number of pileup events to
+	be chosen randomly with a uniform distribution in the range
+	1...UUU.
+
 2014-05-18  Matteo Cacciari <cacciari@lpthe.jussieu.fr>
 
         * AverageAndError.hh

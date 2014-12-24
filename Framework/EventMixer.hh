@@ -58,7 +58,7 @@ private:
   CmdLine * _cmdline;
   std::string _hard_name, _pileup_name;
   std::auto_ptr<EventSource> _hard, _pileup;
-  int _npu;
+  int _npu, _upu;
 
   double _chs_rescaling_factor;
   bool _massless;
