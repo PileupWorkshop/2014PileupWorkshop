@@ -1,3 +1,8 @@
+2015-01-05  Gavin Salam  <gavin.salam@cern.ch>
+
+	* EventSource.cc (open_stream):
+	added error handling if not able to open file. 
+
 2014-12-24  Gavin Salam  <gavin.salam@cern.ch>
 
 	* EventMixer.cc|hh:
