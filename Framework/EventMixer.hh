@@ -3,6 +3,7 @@
 
 #include "CmdLine.hh"
 #include "EventSource.hh"
+#include "GSLRandom.hh"
 
 //----------------------------------------------------------------------
 /// \class EventMixer
@@ -22,6 +23,12 @@
 ///             within code).
 ///  -massless  when present, particles come massless
 ///
+///
+/// Pileup multiplicities can be specified using one of the follosing
+/// three options (by order of priority)
+///  -npu  <N>   fixed npu=N
+///  -mupu <N>   Poisson-distributed with average N
+///  -upu  <N>   uniform between 1 and N
 class EventMixer {
 public:
   EventMixer(CmdLine * cmdline);
@@ -58,8 +65,9 @@ private:
   CmdLine * _cmdline;
   std::string _hard_name, _pileup_name;
   std::auto_ptr<EventSource> _hard, _pileup;
-  int _npu, _upu;
-
+  int _npu, _mupu, _upu;
+  GSLRandom _rng;
+  
   double _chs_rescaling_factor;
   bool _massless;
 
