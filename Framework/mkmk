@@ -1,3 +1,4 @@
 #!/bin/bash
-../scripts/mkcxx.pl -a EventMixer -f
+../scripts/mkcxx.pl -a EventMixer -f -1
+
 

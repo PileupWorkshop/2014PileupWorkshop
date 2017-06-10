@@ -6,6 +6,7 @@
 #include <istream>
 #include <memory>
 #include "fastjet/PseudoJet.hh"
+#include "fastjet/SharedPtr.hh"
 
 //----------------------------------------------------------------------
 /// \class EventSource
@@ -28,7 +29,7 @@ public:
 
 private:
   std::istream * _stream;
-  std::auto_ptr<std::istream> _stream_auto;
+  fastjet::SharedPtr<std::istream> _stream_auto;
 
 };
  

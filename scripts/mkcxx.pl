@@ -15,6 +15,7 @@
 #    -i  add what follows as include flags
 #    -d  add what follows as a define flag
 #    -l  add what follows as link flags
+#    -1  use c++11 flags (adds --std=c++11)
 #    -3  force 32 bit
 #    -p  add google profiling lib
 #    -t  add google tcmalloc lib
@@ -37,7 +38,7 @@ $cmdline = "$0 '".join("' '",@ARGV)."'";
 
 # get options
 %options=();
-getopts("v:a:l:i:g:d:fcrmsb3ptHL",\%options);
+getopts("v:a:l:i:g:d:fcrmsb13ptHL",\%options);
 if (defined($options{"v"})) {
   $VPATH = $options{"v"};
   @PATH = split(":",$VPATH);
@@ -101,6 +102,10 @@ if (defined($options{"3"})) {
   $makefile .= "LDFLAGS += -m32\n";
 }
 
+if (defined($options{"1"})) {
+  $makefile .= "CXXFLAGS += -std=c++11\n";
+  $makefile .= "LDFLAGS += -std=c++11\n";
+}
 
 if (defined($options{"f"})) {
   # see if .fastjet is there -- if so, use it to indicate

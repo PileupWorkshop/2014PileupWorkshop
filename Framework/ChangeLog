@@ -1,3 +1,12 @@
+2016-04-12  Gregory Soyez  <soyez@fastjet.fr>
+
+	* EventMixer.hh:
+	declared massless as const as it should
+
+	* EventMixer.hh:
+	* EventSource.hh:
+	std::auto_ptr -> fastjet::SharedPtr to be more c++11-friendly
+
 2015-01-05  Gavin Salam  <gavin.salam@cern.ch>
 
 	* EventSource.cc (open_stream):
