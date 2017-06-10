@@ -1,0 +1,4 @@
+#!/bin/bash
+../../scripts/mkcxx.pl -f -i '-frounding-math -I../../Framework' -l '-L../../Framework -lEventMixer -lz -lfastjetcontribfragile -lCGAL -lgmp' -r
+#../../scripts/mkcxx.pl -f -i '-DNOCGAL -I../../Framework' -l '-L../../Framework -lEventMixer -lz -lfastjetcontribfragile' -r
+
