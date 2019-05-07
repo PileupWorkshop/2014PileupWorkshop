@@ -1,10 +1,9 @@
-# This file was copied from comparisons/review/offset-v-dispersion-single.gp, version 1.0.0 and it was further modified
+# This file was copied from comparisons/review/offset-v-dispersion-single.gp, version 1.0.0, and it was further modified
 
 
 reset 
 
 set term postscript enhanced color font "Helvetica, 13" dl 1 size 17cm,12cm
-#set output 'offset-v-dispersion-single.eps'
 set colors classic
 
 set yrange [0:*]
@@ -99,9 +98,9 @@ do for [obs in "pt m width"]{
 
 
 plot             all_v_npu(pt)." | grep ".obs."_area"     u ($3):($6) w lp ls 1 t label(ipt,'Area Subtraction'),\
-             all_v_npu(pt)." | grep ".obs."_constit"  u ($3):($6) w lp ls 4 t label(ipt,'Jet-by-jet CS'),\
-             all_v_npu(pt)." | grep ".obs."_CSevent"  u ($3):($6) w lp ls 5 t label(ipt,'Event-wide CS'),\
-             all_v_npu(pt)." | grep ".obs."_ICS4"  u ($3):($6) w lp ls 6 t label(ipt,'ICS')
+             all_v_npu(pt)." | grep ".obs."_jetByJetCS"  u ($3):($6) w lp ls 4 t label(ipt,'Jet-by-jet CS'),\
+             all_v_npu(pt)." | grep ".obs."_eventWideCS"  u ($3):($6) w lp ls 5 t label(ipt,'Event-wide CS'),\
+             all_v_npu(pt)." | grep ".obs."_ICS"  u ($3):($6) w lp ls 6 t label(ipt,'ICS')
         
         set format y ""
         unset ylabel
@@ -171,19 +170,12 @@ plot             all_v_npu(pt)." | grep ".obs."_area"     u ($3):($6) w lp ls 1 
         set rmargin at screen 0.22*ipt+0.10
         set label 1 'p_T>'.sprintf("%g",pt+0.0).' GeV' center at graph 0.5,1.05
 
-#plot         all_v_npu(pt)." | grep ".obs."_sk45z02"     u ($3):($6) w lp ls 2 t label(ipt,'SK+Zeroing'),\
 
-#plot         all_v_npu(pt)." | grep ".obs."_sk50"     u ($3):($6) w lp ls 2 t label(ipt,'SK'),\
-#	     all_v_npu(pt)." | grep ".obs."_puppi"    u ($3):($6) w lp ls 3 t label(ipt,'PUPPI'),\
-#             all_v_npu(pt)." | grep ".obs."_CSSK1"  u ($3):($6) w lp ls 5 t label(ipt,'CS+SK'),\
-#             all_v_npu(pt)." | grep ".obs."_ICS4"  u ($3):($6) w lp ls 6 t label(ipt,'ICS')
+plot         all_v_npu(pt)." | grep ".obs."_sk50"     u ($3):($6) w lp ls 2 t label(ipt,'SK'),\
+	     all_v_npu(pt)." | grep ".obs."_puppi"    u ($3):($6) w lp ls 3 t label(ipt,'PUPPI'),\
+             all_v_npu(pt)." | grep ".obs."_CSSK"  u ($3):($6) w lp ls 5 t label(ipt,'CS+SK'),\
+             all_v_npu(pt)." | grep ".obs."_ICS"  u ($3):($6) w lp ls 6 t label(ipt,'ICS')
 
-plot         all_v_npu(pt)." | grep ".obs."_ICS5"     u ($3):($6) w lp ls 2 t label(ipt,'ICS5'),\
-	     all_v_npu(pt)." | grep ".obs."_ICS6"    u ($3):($6) w lp ls 3 t label(ipt,'ICS6'),\
-	     all_v_npu(pt)." | grep ".obs."_CSSK1"    u ($3):($6) w lp ls 4 t label(ipt,'CSSK1'),\
-	     all_v_npu(pt)." | grep ".obs."_CSSK2"    u ($3):($6) w lp ls 1 t label(ipt,'CSSK2'),\
-           all_v_npu(pt)." | grep ".obs."_CSSK3"  u ($3):($6) w lp ls 5 t label(ipt,'CSSK3'),\
-             all_v_npu(pt)." | grep ".obs."_ICS4"  u ($3):($6) w lp ls 6 t label(ipt,'ICS4')
 
         set format y ""
         unset ylabel
@@ -215,93 +207,6 @@ else{
     set yrange [0:*]
 
 
-    if (0) { # commented-out block for other samples
-    #------------------------------------------------------------------------
-    set output dir.'/offset-v-dispersion-single-'.obs.'-radius'.radius.'-'.massOption.'-allSamples.eps'
-    # NPU dependence, all samples
-    set multiplot
-
-
-    if (obs eq "pt"){
-        set ylabel '{/Symbol s}_{{/Symbol D}p_T} [GeV]' offset 1.5
-	set xlabel '<{/Symbol D}p_T> [GeV]'
-        set xrange [-2.5:1.5]
-        set yrange [0:12]
-        if (radius eq "1.0"){
-             set xrange [-5:3]
-             set yrange [0:24]
-        }
-        set arrow 1 nohead from 0.0,graph 0.0 to 0.0, graph 1.0 lt 1 dt 1 lc 7 lw 1 back
-    }
-    if (obs eq "width"){
-    set ylabel '{/Symbol s}_{{/Symbol D}width}' offset 1.5
-        set xlabel '<{/Symbol D}width>'
-        set xrange [-0.03:0.03]
-        set yrange [0:0.4]
-        if (radius eq "1.0"){
-             set xrange [-0.06:0.06]
-             set yrange [0:0.8]
-	     }
-        set arrow 1 nohead from 0.0,graph 0.0 to 0.0, graph 1.0 lt 1 dt 1 lc 7 lw 1 back
-    }
-    if (obs eq "m"){
-        set ylabel '{/Symbol s}_{{/Symbol D}m} [GeV]' offset 0.0
-        set xlabel '<{/Symbol D}m> [GeV]'
-        set xrange [-1.2:2.8]
-        set yrange [0:7]
-	if (radius eq "1.0"){
-             set xrange [-2.4:5]
-             set yrange [0:14]
-        }
-        set arrow 1 nohead from 0.0,graph 0.0 to 0.0, graph 0.67 lt 1 dt 1 lc 7 lw 1 back
-    }
-    set format y "%g"
-
-    unset key
-    #set style rectangle fs solid 1.0 fc "#ffffff" back noclip noborder
-    set style line 9 lc "#ff0000"
-
-
-
-    samples = "WW500-noUE-nev Zprime500-noUE-nev dijetsel100-noUE-nevsel dijetsel500-noUE-nevsel"
-    sampleNames = "WW Zprime dijets100 dijets500"
-    do for [isample=1:4]{
-        sample=word(samples,isample)
-        sampleName=word(sampleNames,isample)
-        set lmargin at screen 0.22*isample-0.12
-        set rmargin at screen 0.22*isample+0.10
-        set label 1 sprintf("%s",sampleName) center at graph 0.5,1.05
-#        plot \
-#all_v_npu2(sample)." | grep ".obs."_ICS1"     u ($3):($6) w lp ls 1 t label(isample,'0.2 0.1 false'),\
-#             all_v_npu2(sample)." | grep ".obs."_ICS2" u ($3):($6) w lp ls 2 t label(isample,'0.15 0.25 false'),\
-#             all_v_npu2(sample)." | grep ".obs."_ICS3"     u ($3):($6) w lp ls 3 t label(isample,'0.15 0.15 false'),\
-#             all_v_npu2(sample)." | grep ".obs."_ICS4"  u ($3):($6) w lp ls 4 t label(isample,'0.15 0.15 true'),\
-#             all_v_npu2(sample)." | grep ".obs."_ICS5"    u ($3):($6) w lp ls 5 t label(isample,'0.1 0.15 false'),\
-#             all_v_npu2(sample)." | grep ".obs."_ICS6"     u ($3):($6) w lp ls 6 t label(isample,'0.1 0.2 false')
-plot             all_v_npu2(sample)." | grep ".obs."_area"     u ($3):($6) w lp ls 1 t label(isample,'Area Subtraction'),\
-             all_v_npu2(sample)." | grep ".obs."_sk45z02"     u ($3):($6) w lp ls 2 t label(isample,'SK + Zeroing'),\
-	     all_v_npu2(sample)." | grep ".obs."_puppi"    u ($3):($6) w lp ls 3 t label(isample,'PUPPI'),\
-             all_v_npu2(sample)." | grep ".obs."_constit"  u ($3):($6) w lp ls 4 t label(isample,'Jet-by-jet CS'),\
-             all_v_npu2(sample)." | grep ".obs."_CSevent"  u ($3):($6) w lp ls 5 t label(isample,'Event-wide CS'),\
-             all_v_npu2(sample)." | grep ".obs."_ICS3"  u ($3):($6) w lp ls 6 t label(isample,'ICS')
-        
-        set format y ""
-        unset ylabel
-        if (isample==1){
-            set key at graph 0.42,0.975 width -4 spacing 1.05 box lw 1.5 samplen 3.5
-            set object 1 rectangle from graph -0.89,0.672 to graph 0.1, 0.975 back  noclip fs solid border rgb "#ffffff" fc "#ffffff"
-            set object 2 rectangle from graph -0.01,0.674 to graph 0.01,0.973 front noclip fs solid border rgb "#ffffff" fc "#ffffff"
-        } else {
-            unset key
-            unset object 1
-            unset object 2
-        }
-    }
-    unset multiplot
-    set yrange [0:*]
-
-
-}   # ending brace for comment
 }
 }
 }
