@@ -1,0 +1,2 @@
+#!/bin/bash
+../../scripts/mkcxx.pl -f -i '-frounding-math -I../../Framework' -l '-L../../Framework -lEventMixer -lz  -lgsl -lgslcblas  -lSoftKiller -lConstituentSubtractor -lJetCleanser -lSignalFreeBackgroundEstimator -lgmp' -r
