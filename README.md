@@ -34,10 +34,8 @@ The current directory structure is as follows:
 
 - sample-events/ contains small event files for basic testing
 
-- [/afs/cern.ch/user/p/puws2014/public/events](file:///afs/cern.ch/user/p/puws2014/public/events) contains large event
-  files, also accessible through the web at
-  [http://cern.ch/puws2014/events/](http://cern.ch/puws2014/events/).  File names should be fairly self-explanatory. 
-
+- large event files are available from [https://zenodo.org/records/13121726](https://zenodo.org/records/13121726). File names should be fairly self-explanatory. 
+  
 - if you're running on lxplus and you don't already have fastjet, add
 
       /afs/cern.ch/user/p/puws2014/public/fastjet/bin/
